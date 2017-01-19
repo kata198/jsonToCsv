@@ -1,0 +1,8 @@
+*.py[co]
+myenv*/
+*.dump
+*~
+build/
+dist/
+*.bak
+*.egg-info/

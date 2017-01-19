@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+'''
+    Copyright (c) 2017 Timothy Savannah All Rights Reserved
+
+    Licensed under terms of LGPLv3.
+'''
+
+import os
+import sys
+
+from json_to_csv import JsonToCsv, ParseError
+
+from json_to_csv.help import FORMAT_HELP
+
+
+def printUsage():
+    sys.stderr.write('Usage: %s [format str]\n' %(os.path.basename(sys.argv[0])))
+    sys.stderr.write('  Formats a json string ( delivered via stdin ) to csv, based on provided format str.\n\n')
+    sys.stderr.write(FORMAT_HELP)
+
+if __name__ == '__main__':
+
+    args = sys.argv[1:]
+
+    if '--debug' in args:
+        isDebug = True
+        args.remove('--debug')
+    else:
+        isDebug = False
+
+    if '--help' in args:
+        printUsage()
+        sys.exit(2)
+
+    if not args:
+        sys.stderr.write('Missing format str.\n\n')
+        printUsage()
+        sys.exit(1)
+
+    parseStr = ' '.join(args)
+
+    try:
+        parser = JsonToCsv(parseStr, isDebug)
+    except ParseError as pe:
+        sys.stderr.write('Error in format str: %s\n' %(str(pe),))
+        sys.exit(1)
+
+    contents = sys.stdin.read()
+#    with open('newJson.dump', 'rt') as f:
+#        contents = f.read()
+
+    try:
+        print ( parser.convertToCsv(contents) )
+    except ParseError as pe:
+        sys.stderr.write('Error in parsing: %s\n' %(str(pe),))
+        sys.exit(1)

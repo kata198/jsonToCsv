@@ -1,26 +1,13 @@
-# jsonToCsv
-Converts json data to csv
+'''
+    Copyright (c) 2017 Timothy Savannah All Rights Reserved
+
+    Licensed under terms of LGPLv3.
 
 
-Module
-======
+    help.py - Contains help stuff
+'''
 
-TODO: Document JsonToCsv module
-
-
-
-Tool
-====
-
-Usage: jsonToCsv [format str]
-  Formats a json string ( delivered via stdin ) to csv, based on provided format str.
-
-
-
-Format String
-=============
-
-
+FORMAT_HELP = '''
 Format str:
 
    The format str is a series of operations and keys, plus a single "line item"
@@ -175,4 +162,4 @@ Line Item:
        (we are done iterating at this point)
 
     We return to the previous level
- 
+'''
