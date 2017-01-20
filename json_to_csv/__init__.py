@@ -341,6 +341,9 @@ class JsonToCsv(object):
                 Return is a tuple of 3 elements. The first is the merged csv data where a join field matched.
                  The second is the elements only present in csvData1
                  The third is the elements only present in csvData2
+
+              @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
+              @raises KeyError   - If there are duplicate keys preventing a proper merge
         '''
         if not isinstance(csvData1, list) or not isinstance(csvData1[0], list):
             raise ValueError('csvData1 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
