@@ -35,6 +35,7 @@ if __name__ == '__main__':
     nullValue = ''
 
 
+    # Parse the args
     for arg in args:
         if arg.startswith('--null-value='):
             nullValue = arg[len('--null-value='):]
@@ -54,16 +55,21 @@ if __name__ == '__main__':
         printUsage()
         sys.exit(1)
 
+    # Join any remaining args with a space
     parseStr = ' '.join(args)
 
+    # Try to parse format string
     try:
         parser = JsonToCsv(parseStr, nullValue=nullValue, debug=isDebug)
     except ParseError as pe:
+        # Got a readable error, print it.
         sys.stderr.write('Error in format str: %s\n' %(str(pe),))
         sys.exit(1)
 
+    # Read data from stdin
     contents = sys.stdin.read()
 
+    # Parse that data, and print the csv string
     try:
         print ( parser.convertToCsv(contents) )
     except ParseError as pe:
