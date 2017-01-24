@@ -15,6 +15,8 @@ import json
 import sys
 import re
 
+from collections import defaultdict
+
 
 class ParseError(Exception):
     '''
@@ -425,6 +427,25 @@ class JsonToCsv(object):
 
               @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
               @raises KeyError   - If there are duplicate keys preventing a proper merge
+
+
+              NOTE: each csvData MUST have unique values in the "join field", or it cannot join.
+
+                JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
+                  So you can have something like:
+
+                  myCsvData = JsonToCsv.extractData(....)
+                  joinFieldNum = 3  # Example, 4th field is the field we will join on
+
+                  myCsvDataDuplicateLines = JsonToCsv.findDuplicates(myCsvData, joinFieldNum, flat=True)
+                  if myCsvDataDuplicateLines:
+                      myCsvDataUniq = [line for line in myCsvData if line not in myCsvDataDuplicateLines]
+                  else:
+                      myCsvDataUniq = myCsvData
+
+              FUTURE?: Maybe in future add methods to support duplicates in csvData2 (right data),
+                by duplicating left lines for each key in the right.
+
         '''
 
         # TODO: Maybe support other formats? Probably not.
@@ -483,6 +504,79 @@ class JsonToCsv(object):
 
         # Return results
         return (combinedData, onlyData1, onlyData2)
+
+    @staticmethod
+    def findDuplicates(csvData, fieldNum, flat=False):
+        '''
+            findDuplicates - Find lines with duplicate values in a specific field number.
+
+                This is useful to strip duplicates before using JsonToCsv.joinCsv
+                  which requires unique values in the join field.
+
+                  @see JsonToCsv.joinCsv for example code
+
+
+                @param csvData list<list<str>> - List of lines, each line containing string field values.
+
+                    JsonToCsv.extractData returns data in this form.
+
+                @param fieldNum int - Index of the field number in which to search for duplicates
+
+                @param flat bool Default False - If False, return is a map of { "duplicateKey" : lines(copy) }.
+                                                 If True, return is a flat list of all duplicate lines
+
+                @return :
+
+                 When #flat is False:
+
+                    dict { duplicateKeyValue[str] : lines[list<list<str>>] (copy) } -
+
+                      This dict has the values with duplicates as the key, and a COPY of the lines as each value.
+
+                 When #flat is True
+
+                   lines[list<list<str>>] (copy)
+
+                      Copies of all lines with duplicate value in #fieldNum. Duplicates will be adjacent
+        '''
+
+        # Gather the line indexes corrosponding to each key (joinField)
+        #   This way, we only copy what we need, and at the end.
+        keyToLineIdxs = defaultdict(list)
+
+        for i in range(len(csvData)):
+            line = csvData[i]
+
+            fieldValue = line[fieldNum]
+
+            keyToLineIdxs[fieldValue].append(i)
+
+        if flat is False:
+            # Assemble each key : lines(copy)
+            #  for each key with more than 1 lines in its values
+            ret = {}
+
+            for key, indexes in keyToLineIdxs.items():
+                if len(indexes) <= 1:
+                    continue
+
+                ret[key] = [csvData[idx][:] for idx in indexes]
+
+        else:
+
+            # Create a flat list of the values in keyToLineIdxs
+            #   from each list of values (lines) containing more than 1 item (lines)
+
+            ret = []
+
+            for key, indexes in keyToLineIdxs.items():
+                if len(indexes) <= 1:
+                    continue
+
+                ret += [csvData[idx][:] for idx in indexes]
+
+        return ret
+
 
 
 class Rule(object):
