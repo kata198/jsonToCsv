@@ -605,8 +605,6 @@ class JsonToCsv(object):
         commonKeys = set(csvData1Map.keys()).intersection(set(csvData2Map.keys()))
 
         for key in commonKeys:
-#            if key.endswith('97.30'):
-#                import pdb; pdb.set_trace()
             csvDataRows1 = csvData1Map[key]
 
             allData = []
