@@ -431,6 +431,8 @@ class JsonToCsv(object):
 
               NOTE: each csvData MUST have unique values in the "join field", or it cannot join.
 
+                Maybe try out something new for today, and check out "multiJoinCsv" function. 
+
                 JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
                   So you can have something like:
 
@@ -501,6 +503,130 @@ class JsonToCsv(object):
         onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
         for key in onlyData1Keys:
             onlyData1.append(csvData1Map[key])
+
+        # Return results
+        return (combinedData, onlyData1, onlyData2)
+
+    @staticmethod
+    def multiJoinCsv(csvData1, joinFieldNum1, csvData2, joinFieldNum2):
+        '''
+
+            multiJoinCsv - Join two sets of csv data based on a common field value, but this time merge any results, i.e. if key is repeated on A then you'd have:
+
+               AA and AB.
+
+
+            joinCsv - Join two sets of csv data based on a common field value in the two sets.
+
+              csvData should be a list of list (1st is lines, second is items). Such data is gathered by using JsonToCsv.extractData method
+
+              Combined data will append the fields of csvData2 to csvData1, omitting the common field from csvData2
+
+              @param csvData1 list<list> - The "primary" data set
+
+              @param joinFieldNum1 <int> - The index of the common field in csvData1
+
+              @param csvData2 list<list> - The secondary data set
+
+              @param joinFieldNum2 <int> - The index of the common field in csvData2
+
+              @return tuple( mergedData [list<list>], onlyCsvData1 [list<list>], onlyCsvData2 [list<list>] )
+
+                Return is a tuple of 3 elements. The first is the merged csv data where a join field matched.
+                 The second is the elements only present in csvData1
+                 The third is the elements only present in csvData2
+
+              @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
+              @raises KeyError   - If there are duplicate keys preventing a proper merge
+
+
+              NOTE: each csvData MUST have unique values in the "join field", or it cannot join.
+
+                JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
+                  So you can have something like:
+
+                  myCsvData = JsonToCsv.extractData(....)
+                  joinFieldNum = 3  # Example, 4th field is the field we will join on
+
+                  myCsvDataDuplicateLines = JsonToCsv.findDuplicates(myCsvData, joinFieldNum, flat=True)
+                  if myCsvDataDuplicateLines:
+                      myCsvDataUniq = [line for line in myCsvData if line not in myCsvDataDuplicateLines]
+                  else:
+                      myCsvDataUniq = myCsvData
+
+              FUTURE?: Maybe in future add methods to support duplicates in csvData2 (right data),
+                by duplicating left lines for each key in the right.
+
+        '''
+
+        # TODO: Maybe support other formats? Probably not.
+        if not isinstance(csvData1, list) or not isinstance(csvData1[0], list):
+            raise ValueError('csvData1 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
+        if not isinstance(csvData2, list) or not isinstance(csvData2[0], list):
+            raise ValueError('csvData2 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
+
+
+        # Map of all csvData1Key : csvData1Value
+        csvData1Map = defaultdict(list)
+        csvData2Map = defaultdict(list)
+
+        # Just the keys for csvData2
+        csvData2Keys = set()
+
+        onlyData1 = []
+        onlyData2 = []
+        combinedData = []
+
+        # Extract the "joinKey" from the csvData1 (left) into csvData1Map
+        for data in csvData1:
+            # Copy data (list-by-ref)
+            data = data[:]
+
+            joinFieldData = data[joinFieldNum1]
+
+            csvData1Map[joinFieldData].append(data)
+
+
+        # Extract the "joinKey" from csvData2, and merge if possible
+        for data in csvData2:
+            # Copy data (list-by-ref)
+            data = data[:]
+
+            joinFieldData = data[joinFieldNum2]
+
+            csvData2Map[joinFieldData].append(data)
+
+            # If we have a match on left == right, 
+            #   merge the data (omitting the joinField in dataSet2 [right] )
+            if joinFieldData not in csvData1Map:
+                # Otherwise, this data only exists in dataset 2
+                onlyData2.append(data)
+
+        commonKeys = set(csvData1Map.keys()).intersection(set(csvData2Map.keys()))
+
+        for key in commonKeys:
+#            if key.endswith('97.30'):
+#                import pdb; pdb.set_trace()
+            csvDataRows1 = csvData1Map[key]
+
+            allData = []
+
+            for row1 in csvDataRows1:
+                row1 = row1[:]
+                for row2 in csvData2Map[key]:
+                    row2 = row2[:]
+
+                    newData = row2[ :joinFieldNum2] + row2[joinFieldNum2 + 1 :]
+
+                    combinedData.append(row1 + newData)
+                    
+
+        csvData2Keys = list(csvData2Map.keys())
+
+        # Find what was only in dataset 1
+        onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
+        for key in onlyData1Keys:
+            onlyData1 += csvData1Map[key]
 
         # Return results
         return (combinedData, onlyData1, onlyData2)
