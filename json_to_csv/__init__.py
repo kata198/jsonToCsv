@@ -18,6 +18,14 @@ import re
 from collections import defaultdict
 
 
+__version__ = '0.1.0'
+__version_tuple__ = (0, 1, 0)
+
+
+# Public items
+__all__ = ('ParseError', 'JsonToCsv', )
+
+
 class ParseError(Exception):
     '''
         ParseError - Raised if there is an error in parsing the format string.
