@@ -433,6 +433,8 @@ class JsonToCsv(object):
 
                 Maybe try out something new for today, and check out "multiJoinCsv" function. 
 
+                Use multiJoinCsv to link all matches in csvData1 to all matches in csvData2 where join fields match.
+
                 JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
                   So you can have something like:
 
@@ -444,9 +446,6 @@ class JsonToCsv(object):
                       myCsvDataUniq = [line for line in myCsvData if line not in myCsvDataDuplicateLines]
                   else:
                       myCsvDataUniq = myCsvData
-
-              FUTURE?: Maybe in future add methods to support duplicates in csvData2 (right data),
-                by duplicating left lines for each key in the right.
 
         '''
 
@@ -516,8 +515,6 @@ class JsonToCsv(object):
                AA and AB.
 
 
-            joinCsv - Join two sets of csv data based on a common field value in the two sets.
-
               csvData should be a list of list (1st is lines, second is items). Such data is gathered by using JsonToCsv.extractData method
 
               Combined data will append the fields of csvData2 to csvData1, omitting the common field from csvData2
@@ -537,25 +534,6 @@ class JsonToCsv(object):
                  The third is the elements only present in csvData2
 
               @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
-              @raises KeyError   - If there are duplicate keys preventing a proper merge
-
-
-              NOTE: each csvData MUST have unique values in the "join field", or it cannot join.
-
-                JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
-                  So you can have something like:
-
-                  myCsvData = JsonToCsv.extractData(....)
-                  joinFieldNum = 3  # Example, 4th field is the field we will join on
-
-                  myCsvDataDuplicateLines = JsonToCsv.findDuplicates(myCsvData, joinFieldNum, flat=True)
-                  if myCsvDataDuplicateLines:
-                      myCsvDataUniq = [line for line in myCsvData if line not in myCsvDataDuplicateLines]
-                  else:
-                      myCsvDataUniq = myCsvData
-
-              FUTURE?: Maybe in future add methods to support duplicates in csvData2 (right data),
-                by duplicating left lines for each key in the right.
 
         '''
 
