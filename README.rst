@@ -1,15 +1,17 @@
-# jsonToCsv
+jsonToCsv
+=========
+
 Converts json data to csv
 
 
 Module
 ======
 
-The primary public module is json\_to\_csv.**JsonToCsv**
+The primary public module is json_to_csv.**JsonToCsv**
 
-The constructor requires only the format string \[formatStr\] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
+The constructor requires only the format string [formatStr] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
 
-You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields \[nullValue\]
+You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields [nullValue]
 
 
 

@@ -6,3 +6,4 @@ build/
 dist/
 *.bak
 *.egg-info/
+*.sw[po]

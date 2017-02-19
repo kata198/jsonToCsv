@@ -3,3 +3,5 @@ include MANIFEST.in
 include setup.py
 include jsonToCsv
 include help
+include example.py
+include example.json
