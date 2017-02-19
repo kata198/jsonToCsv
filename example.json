@@ -1,0 +1,49 @@
+{
+    "date": "1/1/2011",
+
+    "results": {
+
+        "instances": [
+                      {
+                        "hostname": "examplehost1.example.com",
+                        "ip": "192.168.0.1",
+                        "attributes": [
+                                       {"name": "domain", "value": "test"},
+                                       {"name": "owner", "value": "James99"},
+                                       {"name": "status", "value": "Complete"}
+                                   ],
+                            "puppet_data" : {
+                                "hostgroup" : "at_test",
+                                "last_executed" : "1/1/2011 12:51:55"
+                            }
+                      },
+                      {
+                        "hostname": "examplehost2.example.com",
+                        "ip": "192.168.0.2",
+                        "attributes": [
+                                       {"name": "owner", "value": "Tom14"},
+                                       {"name": "status", "value": "Pending Build"}
+                                    ],
+                            "puppet_data" : {
+                                "hostgroup" : "developer_servers",
+                                "last_executed" : "1/1/2011 12:44:16"
+                            }
+                      },
+                      {
+                            "hostname": "examplehost3.example.com",
+                            "ip": "192.168.0.3",
+                            "attributes": [
+                                           {"name": "owner", "value": "Mary016"},
+                                           {"name": "status", "value": "Complete"},
+                                           {"name": "domain", "value": "production"},
+                                           {"name": "hasReleaseCode", "value": true}
+                                        ],
+                            "puppet_data" : {
+                                "hostgroup" : "prod_app",
+                                "last_executed" : "1/1/2011 12:59:14"
+                     
+                            }
+                      }
+               ]
+        }
+}
