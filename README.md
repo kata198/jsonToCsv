@@ -5,8 +5,71 @@ Converts json data to csv
 Module
 ======
 
-TODO: Document JsonToCsv module
+The primary public module is json\_to\_csv.**JsonToCsv**
 
+The constructor requires only the format string \[formatStr\] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
+
+You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields \[nullValue\]
+
+
+
+Extracting Data
+---------------
+
+Once you've written your formatStr and created the JsonToCsv object, you're ready to start parsing!
+
+**convertToCsv**
+
+The most basic and direct method is the "convertToCsv" function. You can pass in a string (raw data) or a dict (already parsed e.g. by 'json' module ), and you'll be output the csv lines, ready to be passed to the "print" function. 
+
+If you set the optional parameter "asList" to True (default is False), instead of being returned a giant string, you'll get a list where each element represents a line.
+
+
+**extractData**
+
+Likely however, you don't just need to convert it directly to csv if you are working with the module (it is recommended if that is the case, i.e. if you have no extra processing  or analysis or whatever required, that you use the provided "jsonToCsv" function).
+
+Some more complicated use-cases where "extractData" is required are:
+
+* Creating alternate formats of output (like TSV or a text table, or plugging into a GUI)
+* Analysis of the data, i.e. filtering or modifying
+* Joining data from multiple JSON entries (see that section for more info)
+* Whatever you need to do
+
+
+*extractData* works the same way as *convertToCsv*, that is you can pass in a string of a json response, or a dict (the already converted object by json module).
+
+
+
+**dataToStr**
+
+For many of the use-cases where you need to post-process or post-filter the data or whatever, you will eventually want to convert it to a printable string.
+
+This is a function that does just that; you pass in the list-of-lists *extractData* returns, and you get a complete string returned, ready-to-go for the print function.
+
+
+**findDuplicates**
+
+This function can help you identify when multiple lines contain the same data in the same field. 
+
+You pass in the data extracted by *extractData*, pick a zero-origin "fieldNum", which dictates which field to check on each line for duplicate values.
+
+If the "flat" argument is False (default), the output is a map where the keys are all the field values which had duplicate entries.
+
+If "flat" is True, the output is just a list of list-of field values. Basically, the data from extractData, but ONLY included if it has a duplicate in the chosen field.
+
+
+**joinCsv**
+
+TODO: finish
+
+
+Module Usage Example
+--------------------
+
+See: https://github.com/kata198/jsonToCsv/blob/master/example.py .
+
+For a basic example of using the module directly for extraction and reformatting into various formats (CSV, TSV, a text table)
 
 
 Tool
