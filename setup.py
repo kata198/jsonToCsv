@@ -31,7 +31,7 @@ if __name__ == '__main__':
             author='Tim Savannah',
             author_email='kata198@gmail.com',
             maintainer='Tim Savannah',
-#            url='https://github.com/kata198/AdvancedHTMLParser',
+            url='https://github.com/kata198/jsonToCsv',
             maintainer_email='kata198@gmail.com',
             description=summary,
             long_description=long_description,
