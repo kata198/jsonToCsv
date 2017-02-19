@@ -31,29 +31,29 @@ class ParseError(Exception):
 itemPattern = re.compile('^["](?P<key_name>[^"][^"]*)["]')
 
 
-def _getNextQuotedKey(pattern):
+def _getNextQuotedKey(formatStr):
     '''
-        _getNextQuotedKey - Private method which will extract the next quoted key from the pattern,
-          and return the remainder of the pattern.
+        _getNextQuotedKey - Private method which will extract the next quoted key from the formatStr,
+          and return the remainder of the formatStr.
 
-        @param pattern <str> - The current pattern where the next item is expected to be
+        @param formatStr <str> - The current formatStr where the next item is expected to be
 
-        @raises ParserError - If the next item in the pattern is not a quoted key, with a message set
+        @raises ParserError - If the next item in the formatStr is not a quoted key, with a message set
           explaining further.
 
-        @return tuple( itemName<str>, newPattern<str> ) - The item extracted, and the rest of the pattern after item.
+        @return tuple( itemName<str>, newPattern<str> ) - The item extracted, and the rest of the formatStr after item.
     '''
-    if pattern[0] != '"':
-        raise ParseError('Missing expected quote character at: %s' %(pattern,))
+    if formatStr[0] != '"':
+        raise ParseError('Missing expected quote character at: %s' %(formatStr,))
 
-    matchObj = itemPattern.match(pattern)
+    matchObj = itemPattern.match(formatStr)
     if not matchObj:
-        raise ParseError("Can't find end of quoted key name (missing end-quote? Key is not [a-zA-Z0-9_][^\"]*? %s" %(pattern,))
+        raise ParseError("Can't find end of quoted key name (missing end-quote? Key is not [a-zA-Z0-9_][^\"]*? %s" %(formatStr,))
 
     itemName = matchObj.groupdict()['key_name']
 
     # Return itemName and remainder of key after matched portion
-    return (itemName, pattern[matchObj.span()[1]:])
+    return (itemName, formatStr[matchObj.span()[1]:])
 
 
 
@@ -67,11 +67,11 @@ class JsonToCsv(object):
     # These are characters with a defined operation
     OPER_CHARS = (',', '.', '[', ']', '/', '+')
 
-    def __init__(self, pattern, nullValue='', debug=False):
+    def __init__(self, formatStr, nullValue='', debug=False):
         '''
             __init__ - Create a JsonToCsv object.
 
-            @param pattern <str> - The format pattern for the json data to be converted.
+            @param formatStr <str> - The format formatStr for the json data to be converted.
 
             @param nullValue <str> Default empty string - The value to assign to a "null" result.
 
@@ -79,7 +79,7 @@ class JsonToCsv(object):
         '''
 
         # format pattern
-        self.pattern = pattern
+        self.formatStr = formatStr
 
         # The value to assign to a "null"-valued or unreachable field.
         self.nullValue = nullValue
@@ -114,9 +114,9 @@ class JsonToCsv(object):
         '''
 
         # Cleanup some whitespace
-        pattern = self.pattern[:].strip()
+        formatStr = self.formatStr[:].strip()
         for stripChar in self.OPER_CHARS:
-            pattern = re.sub('[\\' + stripChar + '][ ]+', stripChar, pattern)
+            formatStr = re.sub('[\\' + stripChar + '][ ]+', stripChar, formatStr)
 
         # Some local copies of object-level variables. @see __init__ 
         currentLevels = []
@@ -133,68 +133,68 @@ class JsonToCsv(object):
         # If the lineItem has been closed. (NOTE: Not really, just a +1 for now, see below)
         lineItemOpen = False
 
-        # This loop will parse from the current start of pattern, and strip
-        #  the parsed parts. When all of pattern has been parsed, we are done.
-        while pattern:
+        # This loop will parse from the current start of formatStr, and strip
+        #  the parsed parts. When all of formatStr has been parsed, we are done.
+        while formatStr:
 
-            if pattern[0] == '.':
+            if formatStr[0] == '.':
                 # A map access on the next quoted key
-                (itemName, pattern) = _getNextQuotedKey(pattern[1:])
+                (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
                 currentLevels.append( ( 'map', (itemName, ) ) )
 
                 # Ensure we don't end and that we have an open bracket
-                if not pattern:
+                if not formatStr:
                     raise ParseError('Unexpected end after descend into map: "%s"' %(itemName,))
-                if pattern[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after descend into map: "%s". Got: %s.' %(itemName, pattern[0]))
+                if formatStr[0] != '[':
+                    raise ParseError('Expected square bracket, "[" , after descend into map: "%s". Got: %s.' %(itemName, formatStr[0]))
 
                 # Strip bracket
-                pattern = pattern[1:]
+                formatStr = formatStr[1:]
 
                 continue
 
-            elif pattern[0] == '/':
+            elif formatStr[0] == '/':
                 # A list-of-maps (list_map) access on the next quoted key
-                (itemName, pattern) = _getNextQuotedKey(pattern[1:])
+                (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
 
 
                 # Ensure we don't end and that we have an open bracket
-                if not pattern:
+                if not formatStr:
                     raise ParseError('Unexpected end after descend into list-of-maps: "%s"' %(itemName,))
-                if pattern[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after descend into list-of-maps: "%s". Got: %s.' %(itemName, pattern[0]))
+                if formatStr[0] != '[':
+                    raise ParseError('Expected square bracket, "[" , after descend into list-of-maps: "%s". Got: %s.' %(itemName, formatStr[0]))
 
                 # Strip bracket
-                pattern = pattern[1:]
+                formatStr = formatStr[1:]
 
-                patternBefore = pattern[:]
+                formatStrBefore = formatStr[:]
 
                 # Extract the comparison portion ("key"="value")
                 try:
-                    (matchKey, pattern) = _getNextQuotedKey(pattern)
-                    if not pattern or pattern[0] != '=':
-                        raise ParseError('Expected = for "key"="value" following descend into list-of-maps "%s" at: %s' %(itemName, patternBefore))
+                    (matchKey, formatStr) = _getNextQuotedKey(formatStr)
+                    if not formatStr or formatStr[0] != '=':
+                        raise ParseError('Expected = for "key"="value" following descend into list-of-maps "%s" at: %s' %(itemName, formatStrBefore))
 
-                    (matchValue, pattern) = _getNextQuotedKey(pattern[1:])
+                    (matchValue, formatStr) = _getNextQuotedKey(formatStr[1:])
 
 
                 except ParseError as pe:
                     # Has a meaningful message, just raise
                     raise pe
                 except Exception as e:
-                    raise ParseError('Unknown exception parsing list-of-maps "%s" ( %s: %s ) at: %s' %(itemName, e.__class__.__name__, str(e), pattern))
+                    raise ParseError('Unknown exception parsing list-of-maps "%s" ( %s: %s ) at: %s' %(itemName, e.__class__.__name__, str(e), formatStr))
 
 
                 currentLevels.append( ('list_map', (itemName, matchKey, matchValue) ) )
 
                 continue
 
-            elif pattern[0] == '+':
+            elif formatStr[0] == '+':
                 # Defining the line item
 
 
                 if lineItem:
-                    raise ParseError('Multiple line items detected. Already had "%s", and found a new one at: %s' %(lineItem, pattern))
+                    raise ParseError('Multiple line items detected. Already had "%s", and found a new one at: %s' %(lineItem, formatStr))
 
                 # Take all current levels and set to "preLineItemLevels".
                 #  Later, we will transverse these before we start iterating, and we only iterate
@@ -211,21 +211,21 @@ class JsonToCsv(object):
                     raise ParseError('Keys are not allowed before the line item is defined.')
 
                 # Extract and assign the line item name
-                (itemName, pattern) = _getNextQuotedKey(pattern[1:])
+                (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
 
                 lineItem = itemName
                 lineItemOpen = True
 
                 # Ensure we have bracket next
-                if pattern[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after defining line item "%s". Got: %s.' %(lineItem, pattern[0]))
+                if formatStr[0] != '[':
+                    raise ParseError('Expected square bracket, "[" , after defining line item "%s". Got: %s.' %(lineItem, formatStr[0]))
 
                 # Strip bracket
-                pattern = pattern[1:]
+                formatStr = formatStr[1:]
 
                 continue
 
-            elif pattern[0] == ']':
+            elif formatStr[0] == ']':
                 # Closing open item
 
                 # Simple count of all open items. Raise error if closing and nothing open
@@ -239,22 +239,22 @@ class JsonToCsv(object):
                     elif lineItemOpen:
                         lineItemOpen = False
                     else:
-                        raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(pattern,))
+                        raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
                 else:
                     # All good, remove current level
                     currentLevels = currentLevels[:-1]
 
                 # Continue on, and if optional comma, strip that too.
-                pattern = pattern[1:]
-                if pattern and pattern[0] == ',':
-                    pattern = pattern[1:]
+                formatStr = formatStr[1:]
+                if formatStr and formatStr[0] == ',':
+                    formatStr = formatStr[1:]
 
                 continue
 
-            elif pattern[0] == '"':
+            elif formatStr[0] == '"':
                 # A quoted key (for printing).
                 #  NOTE: This is NOT an operative-prefixed quoted key
-                (itemName, pattern) = _getNextQuotedKey(pattern)
+                (itemName, formatStr) = _getNextQuotedKey(formatStr)
 
                 # Build the rule to transverse either from head -> here (pre line item),
                 #   or from line item -> key to print. Note, this rule is agnostic about
@@ -263,24 +263,24 @@ class JsonToCsv(object):
                 rules.append(rule)
 
                 # If optional comma following this printed key, strip that too.
-                if pattern and pattern[0] == ',':
-                    pattern = pattern[1:]
+                if formatStr and formatStr[0] == ',':
+                    formatStr = formatStr[1:]
 
                 continue
-            elif pattern[0] in (',', ' ', '\n', '\r', '\t'):
+            elif formatStr[0] in (',', ' ', '\n', '\r', '\t'):
                 # I don't like that this rule contains comma, because really it means we would parse
                 #  something like: +"something"[,,,,,,,,"key"] as valid, which it is... but.... sigh..
                 #  anyway, better just be safe and strip off meaningless characters.
                 #
-                # The newline and tab and space portions mean these patterns can really be multi-line
-                pattern = pattern[1:]
+                # The newline and tab and space portions mean these formatStrs can really be multi-line
+                formatStr = formatStr[1:]
 
                 continue
             else:
-                sys.stderr.write('Unhandled character: %s\n' %(pattern[0], ))
+                sys.stderr.write('Unhandled character: %s\n' %(formatStr[0], ))
 
 
-        # Done pattern-parsing loop.
+        # Done formatStr-parsing loop.
 
         # Validate:
 
@@ -288,10 +288,10 @@ class JsonToCsv(object):
             raise ParseError('No line item defined.')
 
         if currentLevels or preLineItemIn:
-            raise ParseError('Finished parsing pattern, there are still %d levels open ( missing end square bracket "]" )' %(len(currentLevels) + preLineItemIn, ))
+            raise ParseError('Finished parsing formatStr pattern, there are still %d levels open ( missing end square bracket "]" )' %(len(currentLevels) + preLineItemIn, ))
 
         if lineItemOpen:
-            raise ParseError('Finished parsing pattern, line item "%s" is still open ( missing end square bracket "]" )' %(lineItem, ))
+            raise ParseError('Finished parsing formatStr pattern, line item "%s" is still open ( missing end square bracket "]" )' %(lineItem, ))
 
         # Set calculated items on current object
         self.rules = rules
