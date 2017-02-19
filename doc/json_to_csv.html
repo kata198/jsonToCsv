@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: package json_to_csv</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>json_to_csv</strong></big></big> (version 0.1.0)</font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href="index.html">index</a><br></font></td></tr></table>
+    <p><tt>Copyright&nbsp;(c)&nbsp;2017&nbsp;Timothy&nbsp;Savannah&nbsp;All&nbsp;Rights&nbsp;Reserved<br>
+&nbsp;<br>
+Licensed&nbsp;under&nbsp;terms&nbsp;of&nbsp;LGPLv3.<br>
+&nbsp;<br>
+json_to_csv&nbsp;-&nbsp;Module&nbsp;for&nbsp;converting&nbsp;json&nbsp;data&nbsp;to&nbsp;csv&nbsp;data,&nbsp;and&nbsp;various&nbsp;supplementry&nbsp;methods.<br>
+&nbsp;<br>
+TODO:&nbsp;Does&nbsp;not&nbsp;handle&nbsp;double-quote&nbsp;embedded&nbsp;in&nbsp;data<br>
+TODO:&nbsp;Does&nbsp;not&nbsp;handle&nbsp;commas&nbsp;embedded&nbsp;in&nbsp;data</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="json_to_csv.help.html">help</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="json_to_csv.html#ParseError">ParseError</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="json_to_csv.html#JsonToCsv">JsonToCsv</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="JsonToCsv">class <strong>JsonToCsv</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#JsonToCsv">JsonToCsv</a>&nbsp;-&nbsp;Public&nbsp;class&nbsp;containing&nbsp;methods&nbsp;for&nbsp;dealing&nbsp;with&nbsp;converting<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Json&nbsp;to&nbsp;csv&nbsp;data,&nbsp;merging&nbsp;data,&nbsp;etc<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="JsonToCsv-__init__"><strong>__init__</strong></a>(self, formatStr, nullValue='', debug=False)</dt><dd><tt>__init__&nbsp;-&nbsp;Create&nbsp;a&nbsp;<a href="#JsonToCsv">JsonToCsv</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+&nbsp;<br>
+@param&nbsp;formatStr&nbsp;&lt;str&gt;&nbsp;-&nbsp;The&nbsp;format&nbsp;formatStr&nbsp;for&nbsp;the&nbsp;json&nbsp;data&nbsp;to&nbsp;be&nbsp;converted.<br>
+&nbsp;<br>
+@param&nbsp;nullValue&nbsp;&lt;str&gt;&nbsp;Default&nbsp;empty&nbsp;string&nbsp;-&nbsp;The&nbsp;value&nbsp;to&nbsp;assign&nbsp;to&nbsp;a&nbsp;"null"&nbsp;result.<br>
+&nbsp;<br>
+@param&nbsp;debug&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;output&nbsp;some&nbsp;debug&nbsp;data&nbsp;on&nbsp;stderr.</tt></dd></dl>
+
+<dl><dt><a name="JsonToCsv-convertToCsv"><strong>convertToCsv</strong></a>(self, data, asList=False)</dt><dd><tt>convertToCsv&nbsp;-&nbsp;Convert&nbsp;given&nbsp;data&nbsp;to&nbsp;csv.<br>
+&nbsp;<br>
+@param&nbsp;data&nbsp;&lt;string/dict&gt;&nbsp;-&nbsp;Either&nbsp;a&nbsp;string&nbsp;of&nbsp;json&nbsp;data,&nbsp;or&nbsp;a&nbsp;dict<br>
+@param&nbsp;asList&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;return&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;lines&nbsp;(as&nbsp;strings),&nbsp;otherwise&nbsp;will&nbsp;just&nbsp;return&nbsp;a&nbsp;string.<br>
+&nbsp;<br>
+@return&nbsp;&lt;list/str&gt;&nbsp;-&nbsp;see&nbsp;"asList"&nbsp;param&nbsp;above.</tt></dd></dl>
+
+<dl><dt><a name="JsonToCsv-extractData"><strong>extractData</strong></a>(self, data)</dt><dd><tt>extractData&nbsp;-&nbsp;Return&nbsp;a&nbsp;list&nbsp;of&nbsp;lists.&nbsp;The&nbsp;outer&nbsp;list&nbsp;represents&nbsp;lines,&nbsp;the&nbsp;inner&nbsp;list&nbsp;data&nbsp;points.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e.x.&nbsp;&nbsp;returnData[0]&nbsp;is&nbsp;first&nbsp;line,&nbsp;&nbsp;returnData[0][2]&nbsp;is&nbsp;first&nbsp;line&nbsp;third&nbsp;data&nbsp;point.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;data&nbsp;&lt;string/dict&gt;&nbsp;-&nbsp;Either&nbsp;a&nbsp;string&nbsp;of&nbsp;JSON&nbsp;data,&nbsp;or&nbsp;a&nbsp;dict.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@return&nbsp;list&lt;list&lt;str&gt;&gt;&nbsp;-&nbsp;List&nbsp;of&nbsp;lines,&nbsp;each&nbsp;line&nbsp;containing&nbsp;a&nbsp;list&nbsp;of&nbsp;datapoints.</tt></dd></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="JsonToCsv-dataToStr"><strong>dataToStr</strong></a>(csvData, separator=',')</dt><dd><tt>dataToStr&nbsp;-&nbsp;Convert&nbsp;a&nbsp;list&nbsp;of&nbsp;lists&nbsp;of&nbsp;csv&nbsp;data&nbsp;to&nbsp;a&nbsp;string.<br>
+&nbsp;<br>
+@param&nbsp;csvData&nbsp;list&lt;list&gt;&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;lists,&nbsp;first&nbsp;list&nbsp;is&nbsp;lines,&nbsp;inner-list&nbsp;are&nbsp;values.<br>
+@param&nbsp;separator&nbsp;&lt;str&gt;&nbsp;-&nbsp;Default&nbsp;','&nbsp;this&nbsp;is&nbsp;the&nbsp;separator&nbsp;used&nbsp;between&nbsp;fields&nbsp;(i.e.&nbsp;would&nbsp;be&nbsp;a&nbsp;tab&nbsp;in&nbsp;TSV&nbsp;format)<br>
+&nbsp;<br>
+&nbsp;&nbsp;This&nbsp;is&nbsp;the&nbsp;data&nbsp;returned&nbsp;by&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.extractData<br>
+&nbsp;<br>
+@return&nbsp;str&nbsp;-&nbsp;csv&nbsp;data</tt></dd></dl>
+
+<dl><dt><a name="JsonToCsv-findDuplicates"><strong>findDuplicates</strong></a>(csvData, fieldNum, flat=False)</dt><dd><tt>findDuplicates&nbsp;-&nbsp;Find&nbsp;lines&nbsp;with&nbsp;duplicate&nbsp;values&nbsp;in&nbsp;a&nbsp;specific&nbsp;field&nbsp;number.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;is&nbsp;useful&nbsp;to&nbsp;strip&nbsp;duplicates&nbsp;before&nbsp;using&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.joinCsv<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;which&nbsp;requires&nbsp;unique&nbsp;values&nbsp;in&nbsp;the&nbsp;join&nbsp;field.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@see&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.joinCsv&nbsp;for&nbsp;example&nbsp;code<br>
+&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;csvData&nbsp;list&lt;list&lt;str&gt;&gt;&nbsp;-&nbsp;List&nbsp;of&nbsp;lines,&nbsp;each&nbsp;line&nbsp;containing&nbsp;string&nbsp;field&nbsp;values.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.extractData&nbsp;returns&nbsp;data&nbsp;in&nbsp;this&nbsp;form.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;fieldNum&nbsp;int&nbsp;-&nbsp;Index&nbsp;of&nbsp;the&nbsp;field&nbsp;number&nbsp;in&nbsp;which&nbsp;to&nbsp;search&nbsp;for&nbsp;duplicates<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;flat&nbsp;bool&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;False,&nbsp;return&nbsp;is&nbsp;a&nbsp;map&nbsp;of&nbsp;{&nbsp;"duplicateKey"&nbsp;:&nbsp;lines(copy)&nbsp;}.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;True,&nbsp;return&nbsp;is&nbsp;a&nbsp;flat&nbsp;list&nbsp;of&nbsp;all&nbsp;duplicate&nbsp;lines<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@return&nbsp;:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When&nbsp;#flat&nbsp;is&nbsp;False:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dict&nbsp;{&nbsp;duplicateKeyValue[str]&nbsp;:&nbsp;lines[list&lt;list&lt;str&gt;&gt;]&nbsp;(copy)&nbsp;}&nbsp;-<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;dict&nbsp;has&nbsp;the&nbsp;values&nbsp;with&nbsp;duplicates&nbsp;as&nbsp;the&nbsp;key,&nbsp;and&nbsp;a&nbsp;COPY&nbsp;of&nbsp;the&nbsp;lines&nbsp;as&nbsp;each&nbsp;value.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When&nbsp;#flat&nbsp;is&nbsp;True<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lines[list&lt;list&lt;str&gt;&gt;]&nbsp;(copy)<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Copies&nbsp;of&nbsp;all&nbsp;lines&nbsp;with&nbsp;duplicate&nbsp;value&nbsp;in&nbsp;#fieldNum.&nbsp;Duplicates&nbsp;will&nbsp;be&nbsp;adjacent</tt></dd></dl>
+
+<dl><dt><a name="JsonToCsv-joinCsv"><strong>joinCsv</strong></a>(csvData1, joinFieldNum1, csvData2, joinFieldNum2)</dt><dd><tt>joinCsv&nbsp;-&nbsp;Join&nbsp;two&nbsp;sets&nbsp;of&nbsp;csv&nbsp;data&nbsp;based&nbsp;on&nbsp;a&nbsp;common&nbsp;field&nbsp;value&nbsp;in&nbsp;the&nbsp;two&nbsp;sets.<br>
+&nbsp;<br>
+&nbsp;&nbsp;csvData&nbsp;should&nbsp;be&nbsp;a&nbsp;list&nbsp;of&nbsp;list&nbsp;(1st&nbsp;is&nbsp;lines,&nbsp;second&nbsp;is&nbsp;items).&nbsp;Such&nbsp;data&nbsp;is&nbsp;gathered&nbsp;by&nbsp;using&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.extractData&nbsp;method<br>
+&nbsp;<br>
+&nbsp;&nbsp;Combined&nbsp;data&nbsp;will&nbsp;append&nbsp;the&nbsp;fields&nbsp;of&nbsp;csvData2&nbsp;to&nbsp;csvData1,&nbsp;omitting&nbsp;the&nbsp;common&nbsp;field&nbsp;from&nbsp;csvData2<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;csvData1&nbsp;list&lt;list&gt;&nbsp;-&nbsp;The&nbsp;"primary"&nbsp;data&nbsp;set<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;joinFieldNum1&nbsp;&lt;int&gt;&nbsp;-&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;common&nbsp;field&nbsp;in&nbsp;csvData1<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;csvData2&nbsp;list&lt;list&gt;&nbsp;-&nbsp;The&nbsp;secondary&nbsp;data&nbsp;set<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;joinFieldNum2&nbsp;&lt;int&gt;&nbsp;-&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;common&nbsp;field&nbsp;in&nbsp;csvData2<br>
+&nbsp;<br>
+&nbsp;&nbsp;@return&nbsp;tuple(&nbsp;mergedData&nbsp;[list&lt;list&gt;],&nbsp;onlyCsvData1&nbsp;[list&lt;list&gt;],&nbsp;onlyCsvData2&nbsp;[list&lt;list&gt;]&nbsp;)<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Return&nbsp;is&nbsp;a&nbsp;tuple&nbsp;of&nbsp;3&nbsp;elements.&nbsp;The&nbsp;first&nbsp;is&nbsp;the&nbsp;merged&nbsp;csv&nbsp;data&nbsp;where&nbsp;a&nbsp;join&nbsp;field&nbsp;matched.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;second&nbsp;is&nbsp;the&nbsp;elements&nbsp;only&nbsp;present&nbsp;in&nbsp;csvData1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;third&nbsp;is&nbsp;the&nbsp;elements&nbsp;only&nbsp;present&nbsp;in&nbsp;csvData2<br>
+&nbsp;<br>
+&nbsp;&nbsp;@raises&nbsp;ValueError&nbsp;-&nbsp;If&nbsp;csvData1&nbsp;or&nbsp;csvData2&nbsp;are&nbsp;not&nbsp;in&nbsp;the&nbsp;right&nbsp;format&nbsp;(list&nbsp;of&nbsp;lists)<br>
+&nbsp;&nbsp;@raises&nbsp;KeyError&nbsp;&nbsp;&nbsp;-&nbsp;If&nbsp;there&nbsp;are&nbsp;duplicate&nbsp;keys&nbsp;preventing&nbsp;a&nbsp;proper&nbsp;merge<br>
+&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;NOTE:&nbsp;each&nbsp;csvData&nbsp;MUST&nbsp;have&nbsp;unique&nbsp;values&nbsp;in&nbsp;the&nbsp;"join&nbsp;field",&nbsp;or&nbsp;it&nbsp;cannot&nbsp;join.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Maybe&nbsp;try&nbsp;out&nbsp;something&nbsp;new&nbsp;for&nbsp;today,&nbsp;and&nbsp;check&nbsp;out&nbsp;"multiJoinCsv"&nbsp;function.&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Use&nbsp;multiJoinCsv&nbsp;to&nbsp;link&nbsp;all&nbsp;matches&nbsp;in&nbsp;csvData1&nbsp;to&nbsp;all&nbsp;matches&nbsp;in&nbsp;csvData2&nbsp;where&nbsp;join&nbsp;fields&nbsp;match.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.findDuplicates&nbsp;will&nbsp;identify&nbsp;duplicate&nbsp;values&nbsp;for&nbsp;a&nbsp;given&nbsp;joinfield.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;So&nbsp;you&nbsp;can&nbsp;have&nbsp;something&nbsp;like:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myCsvData&nbsp;=&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.<a href="#JsonToCsv-extractData">extractData</a>(....)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;joinFieldNum&nbsp;=&nbsp;3&nbsp;&nbsp;#&nbsp;Example,&nbsp;4th&nbsp;field&nbsp;is&nbsp;the&nbsp;field&nbsp;we&nbsp;will&nbsp;join&nbsp;on<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myCsvDataDuplicateLines&nbsp;=&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.<a href="#JsonToCsv-findDuplicates">findDuplicates</a>(myCsvData,&nbsp;joinFieldNum,&nbsp;flat=True)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;myCsvDataDuplicateLines:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myCsvDataUniq&nbsp;=&nbsp;[line&nbsp;for&nbsp;line&nbsp;in&nbsp;myCsvData&nbsp;if&nbsp;line&nbsp;not&nbsp;in&nbsp;myCsvDataDuplicateLines]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myCsvDataUniq&nbsp;=&nbsp;myCsvData</tt></dd></dl>
+
+<dl><dt><a name="JsonToCsv-multiJoinCsv"><strong>multiJoinCsv</strong></a>(csvData1, joinFieldNum1, csvData2, joinFieldNum2)</dt><dd><tt>multiJoinCsv&nbsp;-&nbsp;Join&nbsp;two&nbsp;sets&nbsp;of&nbsp;csv&nbsp;data&nbsp;based&nbsp;on&nbsp;a&nbsp;common&nbsp;field&nbsp;value,&nbsp;but&nbsp;this&nbsp;time&nbsp;merge&nbsp;any&nbsp;results,&nbsp;i.e.&nbsp;if&nbsp;key&nbsp;is&nbsp;repeated&nbsp;on&nbsp;A&nbsp;then&nbsp;you'd&nbsp;have:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;AA&nbsp;and&nbsp;AB.<br>
+&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;csvData&nbsp;should&nbsp;be&nbsp;a&nbsp;list&nbsp;of&nbsp;list&nbsp;(1st&nbsp;is&nbsp;lines,&nbsp;second&nbsp;is&nbsp;items).&nbsp;Such&nbsp;data&nbsp;is&nbsp;gathered&nbsp;by&nbsp;using&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.extractData&nbsp;method<br>
+&nbsp;<br>
+&nbsp;&nbsp;Combined&nbsp;data&nbsp;will&nbsp;append&nbsp;the&nbsp;fields&nbsp;of&nbsp;csvData2&nbsp;to&nbsp;csvData1,&nbsp;omitting&nbsp;the&nbsp;common&nbsp;field&nbsp;from&nbsp;csvData2<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;csvData1&nbsp;list&lt;list&gt;&nbsp;-&nbsp;The&nbsp;"primary"&nbsp;data&nbsp;set<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;joinFieldNum1&nbsp;&lt;int&gt;&nbsp;-&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;common&nbsp;field&nbsp;in&nbsp;csvData1<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;csvData2&nbsp;list&lt;list&gt;&nbsp;-&nbsp;The&nbsp;secondary&nbsp;data&nbsp;set<br>
+&nbsp;<br>
+&nbsp;&nbsp;@param&nbsp;joinFieldNum2&nbsp;&lt;int&gt;&nbsp;-&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;common&nbsp;field&nbsp;in&nbsp;csvData2<br>
+&nbsp;<br>
+&nbsp;&nbsp;@return&nbsp;tuple(&nbsp;mergedData&nbsp;[list&lt;list&gt;],&nbsp;onlyCsvData1&nbsp;[list&lt;list&gt;],&nbsp;onlyCsvData2&nbsp;[list&lt;list&gt;]&nbsp;)<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Return&nbsp;is&nbsp;a&nbsp;tuple&nbsp;of&nbsp;3&nbsp;elements.&nbsp;The&nbsp;first&nbsp;is&nbsp;the&nbsp;merged&nbsp;csv&nbsp;data&nbsp;where&nbsp;a&nbsp;join&nbsp;field&nbsp;matched.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;second&nbsp;is&nbsp;the&nbsp;elements&nbsp;only&nbsp;present&nbsp;in&nbsp;csvData1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;third&nbsp;is&nbsp;the&nbsp;elements&nbsp;only&nbsp;present&nbsp;in&nbsp;csvData2<br>
+&nbsp;<br>
+&nbsp;&nbsp;@raises&nbsp;ValueError&nbsp;-&nbsp;If&nbsp;csvData1&nbsp;or&nbsp;csvData2&nbsp;are&nbsp;not&nbsp;in&nbsp;the&nbsp;right&nbsp;format&nbsp;(list&nbsp;of&nbsp;lists)</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>OPER_CHARS</strong> = (',', '.', '[', ']', '/', '+')</dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ParseError">class <strong>ParseError</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#ParseError">ParseError</a>&nbsp;-&nbsp;Raised&nbsp;if&nbsp;there&nbsp;is&nbsp;an&nbsp;error&nbsp;in&nbsp;parsing&nbsp;the&nbsp;format&nbsp;string.<br>
+&nbsp;<br>
+TODO:&nbsp;Better&nbsp;name.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="json_to_csv.html#ParseError">ParseError</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
+<dl><dt><a name="ParseError-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="ParseError-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><a name="ParseError-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="ParseError-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="ParseError-__reduce__"><strong>__reduce__</strong></a>(...)</dt><dd><tt>helper&nbsp;for&nbsp;pickle</tt></dd></dl>
+
+<dl><dt><a name="ParseError-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="ParseError-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
+
+<dl><dt><a name="ParseError-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ParseError-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="ParseError-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ParseError-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
+set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><strong>__cause__</strong></dt>
+<dd><tt>exception&nbsp;cause</tt></dd>
+</dl>
+<dl><dt><strong>__context__</strong></dt>
+<dd><tt>exception&nbsp;context</tt></dd>
+</dl>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__suppress_context__</strong></dt>
+</dl>
+<dl><dt><strong>__traceback__</strong></dt>
+</dl>
+<dl><dt><strong>args</strong></dt>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>__all__</strong> = ('ParseError', 'JsonToCsv')<br>
+<strong>__version_tuple__</strong> = (0, 1, 0)</td></tr></table>
+</body></html>
