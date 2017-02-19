@@ -63,6 +63,27 @@ If "flat" is True, the output is just a list of list-of field values. Basically,
 
 **joinCsv**
 
+joinCsv will take in two sets of list<list<str>> (i.e. returned frmo "extractData"), and two 0-origin numbers, joinFieldNum1 (what is the index of the "join field" in the first dataset) and joinFieldNum2.
+
+So for example, you may have two sets of data, both describing people. "Social Security Number" could be the 4th field from zero on one of them, and the 0th on another dataset. So if you want to combine these two datasets, you can use this method to do so, bt joining those fields (i.e. any instances where there's a field match between the two joinFieldNum columns, that index is removed from the second dataset, sand the second dataset is appended to the first.
+
+**multiJoinCsv**
+
+Same as joinCsv, but joinCsv allows no duplicates within a dataset itself. So going with the data above, imagine if the same social security number had two people's names in one dataset.... well which one is rght? A computer can't determine that.
+
+So this function will give a "best effort", in the above example, you'd get person X's dataset attached to whoemver had that social security number listed. So if you have a field duplicated twice in both csvData1 and csvData2, you'll end up with 4 lines total:
+
+
+* A1 B1
+* A2 B1
+* A1 B2
+* A2 B3
+
+This matches very eagerly, but you may start to get some invalid data at this point.
+
+
+TODO: write more.
+
 TODO: finish
 
 
