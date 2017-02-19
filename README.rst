@@ -66,6 +66,12 @@ If "flat" is True, the output is just a list of list-of field values. Basically,
 TODO: finish
 
 
+Module PyDoc
+------------
+
+You can access the pydoc here: http://htmlpreview.github.io/?https://github.com/kata198/jsonToCsv/blob/master/doc/index.html
+
+
 Module Usage Example
 --------------------
 

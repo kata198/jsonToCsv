@@ -1,4 +1,5 @@
 recursive-include json_to_csv *.py
+recursive-include doc *.html
 include MANIFEST.in
 include setup.py
 include jsonToCsv
