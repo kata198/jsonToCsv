@@ -382,11 +382,12 @@ class JsonToCsv(object):
         return lines
 
     @staticmethod
-    def dataToStr(csvData):
+    def dataToStr(csvData, separator=','):
         '''
             dataToStr - Convert a list of lists of csv data to a string.
 
             @param csvData list<list> - A list of lists, first list is lines, inner-list are values.
+            @param separator <str> - Default ',' this is the separator used between fields (i.e. would be a tab in TSV format)
 
               This is the data returned by JsonToCsv.extractData
 
@@ -397,8 +398,8 @@ class JsonToCsv(object):
         if not isinstance(csvData, list) or not isinstance(csvData[0], list):
             raise ValueError('csvData is not a list-of-lists. dataToStr is meant to convert the return of "extractData" method to csv data.')
 
-        # Each line is the comma-joining of its values
-        lines = [','.join(items) for items in csvData]
+        # Each line is the comma-joining (or whatever #separator is) of its values
+        lines = [separator.join(items) for items in csvData]
 
         return '\n'.join(lines)
 
