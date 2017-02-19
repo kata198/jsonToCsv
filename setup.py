@@ -24,7 +24,7 @@ if __name__ == '__main__':
         sys.stderr.write('Exception when reading long description: %s\n' %(str(e),))
         long_description = summary
 
-    setup(name='json_to_csv',
+    setup(name='jsonToCsv',
             version='0.1.0',
             packages=['json_to_csv'],
             scripts=['jsonToCsv'],
