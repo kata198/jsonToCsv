@@ -92,158 +92,164 @@ Format String
 =============
 
 
-Format str:
+**Format str:**
 
-   The format str is a series of operations and keys, plus a single "line item"
+	The format str is a series of operations and keys, plus a single "line item"
 
-Keys:
+**Keys:**
 
-   Every key name listed in the format string is quoted with double-quotes.
+	
+	Every key name listed in the format string is quoted with double-quotes.
 
-   If the key is prefixed with an operation, it is used to REACH a value.
+	If the key is prefixed with an operation, it is used to REACH a value.
 
-   If a key is NOT prefixed with an operation, it becomes a value printed.
+	If a key is NOT prefixed with an operation, it becomes a value printed.
 
-   All keys to be printed, of course, must be AFTER the line item.
+	All keys to be printed, of course, must be AFTER the line item.
 
-   Unless you are using an op to change level, the quoted key should be followed
-     by a comma to separate.
+	Unless you are using an op to change level, the quoted key should be followed
+	 by a comma to separate.
 
-    Examples:
 
-       "hostname"   # Print key hostname at current level
+	Examples:
 
-       ."hostname"[ # The . (map access) operator applied on the "hostname" key
+	   "hostname"   # Print key hostname at current level
 
-       "hostname", "cheese" # Two keys at this current level
+	   ."hostname"[ # The . (map access) operator applied on the "hostname" key
 
+	   "hostname", "cheese" # Two keys at this current level
+	
 
-Line Item:
+**Line Item:**
 
-    The "line item" is the key iterated-over to produce each line of the csv.
+	
+	The "line item" is the key iterated-over to produce each line of the csv.
 
-    The line item is given with the '+' sign before a key.
+	The line item is given with the '+' sign before a key.
 
-    All keys to be printed must be after the line item, and you may only have
-      one line item.
+	All keys to be printed must be after the line item, and you may only have
+	  one line item.
 
-    Example:
 
-      +"instances"[  # For each item in the array at current level given by key 
-                     #   "instances", we will generate a csv line.
+	Example:
 
- Map Access:
+	  +"instances"[  # For each item in the array at current level given by key 
 
-    The "map access" operator means to access a key at the current level
+					 #   "instances", we will generate a csv line.
 
-      and progresses the 'current level' to include this key access.
 
-    A map access is given with the '.' operator before a key
+**Map Access:**
 
+	The "map access" operator means to access a key at the current level
 
-    Example:
+	and progresses the 'current level' to include this key access.
 
-      ."Data"[   # Descend the 'current level' by the key "Data"
+	A map access is given with the '.' operator before a key
 
 
-  List-Map Access:
+	Example:
 
-    The "list-map access" operator means to search a list of maps at the current level,
-      found under the given key, until a key in that map matches a given value.
+	  ."Data"[   # Descend the 'current level' by the key "Data"
 
-    You use the "/" operator prefix to the key, and within the square bracket define a comparitive op.
+**List-Map Access:**
 
-    It will stop on the FIRST match that it finds. Duplicates are not supported because it would create
-      an arbitrary number of fields (and csv is fixed-field)
+	The "list-map access" operator means to search a list of maps at the current level,
+	  found under the given key, until a key in that map matches a given value.
 
-    For example, if you had a key "attributes" which held a bunch of maps like {"key" : ... , "value" : ... }
+	You use the "/" operator prefix to the key, and within the square bracket define a comparitive op.
 
-      and you want select the map where "key" == "color", it would look like this:
+	It will stop on the FIRST match that it finds. Duplicates are not supported because it would create
+	  an arbitrary number of fields (and csv is fixed-field)
 
-      /"attributes"["key"="color"
+	For example, if you had a key "attributes" which held a bunch of maps like {"key" : ... , "value" : ... }
 
+	  and you want select the map where "key" == "color", it would look like this:
 
-  Moving Between Levels:
+	  /"attributes"["key"="color"
 
-    You'll notice that every op descends a level, represented by being followed by a square bracket, "[".
 
-    If you want to ascend back up to the previous level, simply close the square bracket "]".
+**Moving Between Levels:**
 
-    All open brackets must be closed before the format string ends.
+	You'll notice that every op descends a level, represented by being followed by a square bracket, "[".
 
+	If you want to ascend back up to the previous level, simply close the square bracket "]".
 
-  Whitespace Characters:
+	All open brackets must be closed before the format string ends.
 
-    Spaces and newlines are generally ignored, and can be used to make things look nice.
 
-  Commas:
+**Whitespace Characters:**
 
-    Commas should be used to separate items on the same level, so after a quoted-key for printing,
+	Spaces and newlines are generally ignored, and can be used to make things look nice.
 
-     and after a close-bracket "]" if more items follow on that upper level.
 
-   Order:
+Commas:
 
-     Keys are printed as found left-to-right in the format string.
+	Commas should be used to separate items on the same level, so after a quoted-key for printing,
+	and after a close-bracket "]" if more items follow on that upper level.
 
-     You can descend into levels, back up, print keys, then descend back into those levels as many
-       times as you like.
+Order:
 
+	Keys are printed as found left-to-right in the format string.
 
-   Nulls:
+	You can descend into levels, back up, print keys, then descend back into those levels as many
+	  times as you like.
 
-     If a value in the json map is "null" or undefined, an empty string is given for the value.
 
-     If there is an error following the format string to a key (like a missing key, or bad type),
+Nulls:
 
-       you can pass the '--debug' flag to print on stderr WHY it returned null, each time that it does.
+	 If a value in the json map is "null" or undefined, an empty string is given for the value.
 
-    Case sensitive:
+	 If there is an error following the format string to a key (like a missing key, or bad type),
 
-      All keys are case sensitive.
+	 you can pass the '--debug' flag to print on stderr WHY it returned null, each time that it does.
 
+Case sensitive:
 
- FULL EXAMPLE:
- --------------
+	All keys are case sensitive.
 
-  ."Data"[ +"Instances"[ "hostname", /"attrs"["key"="role" "value"], /"attrs"["key"="created_at" "value", "who_set"], ."Performance"[ "cpus", "memory" ] ] ]
 
+FULL EXAMPLE:
+--------------
 
-  Explanation:
+	."Data"[ +"Instances"[ "hostname", /"attrs"["key"="role" "value"], /"attrs"["key"="created_at" "value", "who_set"], ."Performance"[ "cpus", "memory" ] ] ]
 
-    The given json object will first be descended by the "Data" key, where a map is expected.
 
-    In this map, "Instances" will be the "line item", i.e. we will iterate over each item in the "Instances" list to generate each line of the csv.
+**Explanation:**
 
-    So, for each map in "Instances":
 
-       We print the "hostname" key as the first csv element
+The given json object will first be descended by the "Data" key, where a map is expected.
 
-       We descend into a list of maps under the key "attrs",
-       
-           search for where one of those maps has an entry "key" with the value "role",
-           and we print the value of the "value" key of that map as the second csv element.
+In this map, "Instances" will be the "line item", i.e. we will iterate over each item in the "Instances" list to generate each line of the csv.
 
-           Then, we return to previous level.
+So, for each map in "Instances":
 
-       We descend again into that list of maps under the key "attrs",
+   * We print the "hostname" key as the first csv element
 
-           search for where one of those maps has an entry "key" with the value "created_at",
-           and we print the value of the "value" key of that map as the third csv element.
-           We then print value of the "who_set" key of that same map as the fourth csv element.
+   * We descend into a list of maps under the key "attrs",
+   
+   * Search for where one of those maps has an entry "key" with the value "role", and we print the value of the "value" key of that map as the second csv element.
 
-           Then, we return to the previous level
+Then, we return to previous level.
 
-       We then descend into a map under the key 'Performance'
+We descend again into that list of maps under the key "attrs",
 
-          we print the value of the key "cpus" at this level as the fifth csv element.
-          we print the value of the key "memory" at this level as the sixth csv element.
+   * Search for where one of those maps has an entry "key" with the value "created_at",
+     and we print the value of the "value" key of that map as the third csv element.
 
-          Then, we return to the previous level
+   * We then print value of the "who_set" key of that same map as the fourth csv element.
 
-       We return to the previous level
+Then, we return to the previous level
 
-       (we are done iterating at this point)
+We then descend into a map under the key 'Performance'
 
-    We return to the previous level
- 
+   * we print the value of the key "cpus" at this level as the fifth csv element.
+   * we print the value of the key "memory" at this level as the sixth csv element.
+
+Then, we return to the previous level
+
+We return to the previous level
+
+(we are done iterating at this point)
+
+We return to the previous level
+
