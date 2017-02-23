@@ -143,20 +143,27 @@ Format String
 
 **Line Item:**
 
-	
-	The "line item" is the key iterated-over to produce each line of the csv.
+	A "line item" is the key iterated-over to produce each line of the csv.
 
-	The line item is given with the '+' sign before a key.
+	A line item is given with the '+' sign before a key.
 
-	All keys to be printed must be after the line item, and you may only have
-	  one line item.
+	You may have multiple line items (so iterate over multiple keys), and you will have
+
+	  one line of output per each innermost line item found.
+
+	You may not close a line item and then try to open another one.
+
+	All keys to be printed must be after the first line item.
 
 
-	Example:
+	Examples:
 
 	  +"instances"[  # For each item in the array at current level given by key 
+	                 #   "instances", we will generate a csv line.
 
-					 #   "instances", we will generate a csv line.
+	  ."Something"[  # Go into key at root named 'Something'
+	    +"Data"[     # Iterate over each element in the array found at "Data"
+	    +"instances" # Iterate again over each element in the array found at "instances" within each "Data"
 
 
 **Map Access:**
