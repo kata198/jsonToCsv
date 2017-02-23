@@ -5,8 +5,15 @@
 
     json_to_csv - Module for converting json data to csv data, and various supplementry methods.
 
-    TODO: Does not handle double-quote embedded in data
-    TODO: Does not handle commas embedded in data
+    0.1:
+
+        TODO: Does not handle double-quote embedded in data
+        TODO: Does not handle commas embedded in data
+
+    0.2:
+
+        TODO: Better bounds checking for multiple line items
+        TODO: Support extracting data from more than just the inner-most line item
 '''
 
 # vim: set ts=4 sw=4 st=4 expandtab :
@@ -95,12 +102,10 @@ class JsonToCsv(object):
         # debug flag
         self.debug = debug
 
-        # preLineItemLevels - A list of "levels" that must be walked to
-        #   get to the line item. Each "level" is a tuple of ( type<str> , data<tuple> )
-        self.preLineItemLevels = None
-
-        # lineItem - The key of the item to be iterated over
-        self.lineItem = None
+        # lineItems - Tuple of (preLineItemLevels, The key of the item to be iterated over)
+        #   each "preLineItemLevels" describes the levels used by Rule to walk from the previous
+        #   point to the current line item key on which to iterate.
+        self.lineItems = []
 
         # rules - A list of Rule objects, which are executed on the lineItem to extract the results.
         self.rules = None
@@ -114,8 +119,7 @@ class JsonToCsv(object):
             __parsePattern - Private method to convert a given pattern into various Rules and other attributes on this class.
 
             Sets variables: 
-                * self.preLineItemLevels
-                * self.lineItem
+                * self.lineItems
                 * self.rules
 
             @return None
@@ -136,10 +140,11 @@ class JsonToCsv(object):
         # Number of pre-lineItem levels we were in (for counting)
         preLineItemIn = 0
 
-        lineItem = None
+        lineItems = []
 
         # If the lineItem has been closed. (NOTE: Not really, just a +1 for now, see below)
         lineItemOpen = False
+        numLineItemsOpen = 0
 
         # This loop will parse from the current start of formatStr, and strip
         #  the parsed parts. When all of formatStr has been parsed, we are done.
@@ -201,17 +206,17 @@ class JsonToCsv(object):
                 # Defining the line item
 
 
-                if lineItem:
-                    raise ParseError('Multiple line items detected. Already had "%s", and found a new one at: %s' %(lineItem, formatStr))
+                # TODO: Make sure we don't start line items outside of other open lineitems
+
+#                if lineItem:
+#                    raise ParseError('Multiple line items detected. Already had "%s", and found a new one at: %s' %(lineItem, formatStr))
 
                 # Take all current levels and set to "preLineItemLevels".
-                #  Later, we will transverse these before we start iterating, and we only iterate
-                #  FROM this line item.
-                #
-                # TODO: Support multiple line items? Change to 'preFirstLineItem', 
-                #   and then a list of levels and rules to iterate between?
+                #  We will mark these as all the levels to walk between iterations (line items)
                 preLineItemLevels = currentLevels[:]
-                preLineItemIn = len(preLineItemLevels)
+
+                # TODO: Track this more specifically, so we can tell within WHICH line item we are currently working
+                preLineItemIn += len(preLineItemLevels)
 
                 currentLevels = []
 
@@ -223,6 +228,9 @@ class JsonToCsv(object):
 
                 lineItem = itemName
                 lineItemOpen = True
+                numLineItemsOpen += 1
+
+                lineItems.append( (preLineItemLevels, lineItem) )
 
                 # Ensure we have bracket next
                 if formatStr[0] != '[':
@@ -244,8 +252,10 @@ class JsonToCsv(object):
                 if not currentLevels:
                     if preLineItemIn > 0:
                         preLineItemIn -= 1
-                    elif lineItemOpen:
-                        lineItemOpen = False
+                    elif numLineItemsOpen:
+                        numLineItemsOpen -=  1
+                        if numLineItemsOpen == 0:
+                            lineItemOpen = False
                     else:
                         raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
                 else:
@@ -292,22 +302,69 @@ class JsonToCsv(object):
 
         # Validate:
 
-        if not lineItem:
+        if not lineItems:
             raise ParseError('No line item defined.')
+
+        # TODO: Keep a tuple of open line items so we can be specific and track that we don't close then try to open another
 
         if currentLevels or preLineItemIn:
             raise ParseError('Finished parsing formatStr pattern, there are still %d levels open ( missing end square bracket "]" )' %(len(currentLevels) + preLineItemIn, ))
 
+        # TODO: Update this
         if lineItemOpen:
-            raise ParseError('Finished parsing formatStr pattern, line item "%s" is still open ( missing end square bracket "]" )' %(lineItem, ))
+            raise ParseError('Finished parsing formatStr pattern, line item "%s" is still open ( missing end square bracket "]" )' %(lineItems[0][1], ))
 
         # Set calculated items on current object
         self.rules = rules
-        self.lineItem = lineItem
-
-        self.preLineItemLevels = preLineItemLevels
+        self.lineItems = lineItems
 
 
+    def _followLineItems(self, obj, preLineItemLevels, lineItem, remainingLineItems):
+        '''
+            _followLineItems - Internal function to walk line items and extract data.
+
+              Operates recursively
+
+              @param obj <dict> - The current level in the json
+              @param preLineItemLevels list< tuple(str[type], tuple[type_data]) > - The levels to walk between "obj" and "lineItem" key
+              @param lineItem <str> - The key to iterate over
+              @param remainingLineItems list< tuple( preLineItemLevels, lineItem) > - The remaining sets of line items to walk. We recurse using this,
+                            when this is empty we are at the most inner line item and thus we generate data.
+
+
+              @return list<list<str>> - Outer list is lines, with each line being a list of each field data
+        '''
+        lines = []
+
+        # Walk between "obj" up to the parent of the "lineItem" key
+        if preLineItemLevels:
+            nextObj = Rule.descendLevels(obj, preLineItemLevels, debug=self.debug)
+        else:
+            nextObj = obj
+
+        if not remainingLineItems:
+            # We are on the most inner, so extract the data into a set of lines to return
+            #   TODO: Allow rules to be applied on ANY level, to support extraction of data
+            #   outside the most inner line item.
+            
+            # Get tbe inner list of rules
+            rules = self.rules
+            for item in nextObj[lineItem]:
+                line = []
+                # Walk each rule to each value to print
+                for rule in rules:
+                    line.append(rule(item))
+                # Append this line's extracted data
+                lines.append(line)
+        else:
+            # We have more walking to do before the most inner item.
+            #   TODO: Allow rules to be applied on ANY level for data extraction
+            (nextPreLineItemLevels, nextLineItem) = remainingLineItems[0]
+            for item in nextObj[lineItem]:
+                lines += self._followLineItems(item, nextPreLineItemLevels, nextLineItem, remainingLineItems[1:])
+
+        return lines
+        
 
     def convertToCsv(self, data, asList=False):
         '''
@@ -319,30 +376,10 @@ class JsonToCsv(object):
             @return <list/str> - see "asList" param above.
         '''
 
-        # Get data in the right format
-        if not isinstance(data, dict):
-            obj = json.loads(data)
-        else:
-            obj = data
+        lines = self.extractData(data)
 
-        # Transverse the pre-line item levels. We will iterate from here.
-        #   All rules after lineItem is defined start from lineItem
-        if self.preLineItemLevels:
-            obj = Rule.descendLevels(obj, self.preLineItemLevels, debug=self.debug)
-
-        rules = self.rules
-
-        # lines - For return
-        lines = []
-
-        # Iterate over the lineItem
-        for item in obj[self.lineItem]:
-            line = []
-            # Walk each rule to each value to print
-            for rule in rules:
-                line.append(rule(item))
-            # Append csv-data for this line
-            lines.append(','.join(line))
+        # Convert each line to a csv string
+        lines = [','.join(line) for line in lines]
 
         # If asList, we return a list of strings (lines), otherwise, we return a string
         if asList:
@@ -361,31 +398,15 @@ class JsonToCsv(object):
 
                 @return list<list<str>> - List of lines, each line containing a list of datapoints.
         '''
-        # TODO: copied from above
-
         # Get data in right format
         if not isinstance(data, dict):
             obj = json.loads(data)
         else:
             obj = data
 
-        # Transverse the pre-line item levels. We will iterate from here.
-        #   All rules after lineItem is defined start from lineItem
-        if self.preLineItemLevels:
-            obj = Rule.descendLevels(obj, self.preLineItemLevels, debug=self.debug)
+        firstLineItem = self.lineItems[0]
 
-        rules = self.rules
-
-        # lines - for return, list<list>(strs)
-        lines = []
-
-        for item in obj[self.lineItem]:
-            line = []
-            # Walk each rule to each value to print
-            for rule in rules:
-                line.append(rule(item))
-            # Append this list of values, as a line
-            lines.append(line)
+        lines = self._followLineItems(obj, firstLineItem[0], firstLineItem[1], self.lineItems[1:])
 
         return lines
 
