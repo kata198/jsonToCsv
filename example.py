@@ -231,7 +231,7 @@ if __name__ == '__main__':
                 firstCol = False
             else:
                 oper = COL_STR_OPER
-            sys.stdout.write( COL_STR_OPER % (field, ))
+            sys.stdout.write( oper % (field, ))
             if i != numHeaders - 1:
                 sys.stdout.write('\t')
         sys.stdout.write('\n')
