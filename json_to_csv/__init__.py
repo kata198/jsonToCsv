@@ -12,7 +12,6 @@
 
     0.2:
 
-        TODO: Better bounds checking for multiple line items
         TODO: Support extracting data from more than just the inner-most line item
 '''
 
@@ -135,16 +134,14 @@ class JsonToCsv(object):
 
         rules = []
 
-        preLineItemLevels = []
-
-        # Number of pre-lineItem levels we were in (for counting)
-        preLineItemIn = 0
-
+        # Line items - list< tuple< preLevels<list<tuple<str, tuple>>> 
         lineItems = []
 
-        # If the lineItem has been closed. (NOTE: Not really, just a +1 for now, see below)
-        lineItemOpen = False
-        numLineItemsOpen = 0
+        # openLineItems - A list of open line items. list<tuple<str(name), list(levels)>>
+        openLineItems = []
+
+        # Track if we've ever closed a line item, after which we can't open another one.
+        closedALineItem = False
 
         # This loop will parse from the current start of formatStr, and strip
         #  the parsed parts. When all of formatStr has been parsed, we are done.
@@ -205,32 +202,32 @@ class JsonToCsv(object):
             elif formatStr[0] == '+':
                 # Defining the line item
 
+                # Extract and assign the line item name
+                origFormatStr = formatStr[:]
 
-                # TODO: Make sure we don't start line items outside of other open lineitems
+                (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
 
-#                if lineItem:
-#                    raise ParseError('Multiple line items detected. Already had "%s", and found a new one at: %s' %(lineItem, formatStr))
+                if closedALineItem is True:
+                    raise ParseError('Tried to start a new line item, "%s" outside of an already closed line item. At: %s' %(itemName, origFormatStr) )
 
                 # Take all current levels and set to "preLineItemLevels".
                 #  We will mark these as all the levels to walk between iterations (line items)
                 preLineItemLevels = currentLevels[:]
 
-                # TODO: Track this more specifically, so we can tell within WHICH line item we are currently working
-                preLineItemIn += len(preLineItemLevels)
+                if not lineItems:
+
+                    # TODO: Support rules associated by line item, not just the most inner line item
+                    if rules:
+                        raise ParseError('Keys are not allowed before a line item is defined.')
 
                 currentLevels = []
 
-                if rules:
-                    raise ParseError('Keys are not allowed before the line item is defined.')
-
-                # Extract and assign the line item name
-                (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
 
                 lineItem = itemName
-                lineItemOpen = True
-                numLineItemsOpen += 1
 
                 lineItems.append( (preLineItemLevels, lineItem) )
+
+                openLineItems.append( (lineItem, preLineItemLevels[:]) )
 
                 # Ensure we have bracket next
                 if formatStr[0] != '[':
@@ -245,22 +242,25 @@ class JsonToCsv(object):
                 # Closing open item
 
                 # Simple count of all open items. Raise error if closing and nothing open
-                #
-                #  TODO: If support multiple line items, may need to convert this to actually
-                #   a stack to keep track of WHAT is closing moreso than we do
-                #   ( i.e. integrate the preLineItem and lineItemOpen into the tracked stack with currentLevels )
-                if not currentLevels:
-                    if preLineItemIn > 0:
-                        preLineItemIn -= 1
-                    elif numLineItemsOpen:
-                        numLineItemsOpen -=  1
-                        if numLineItemsOpen == 0:
-                            lineItemOpen = False
+
+                
+                if len(openLineItems) > 0:
+                    if len(currentLevels) <= 0:
+
+                        closingThisLineItem = openLineItems[-1]
+
+                        openLineItems = openLineItems[:-1]
+                        currentLevels = closingThisLineItem[1]
+
+                        closedALineItem = True
                     else:
-                        raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
-                else:
-                    # All good, remove current level
+                        # All good, remove current level
+                        currentLevels = currentLevels[:-1]
+
+                elif len(currentLevels) > 0:
                     currentLevels = currentLevels[:-1]
+                else:
+                    raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
 
                 # Continue on, and if optional comma, strip that too.
                 formatStr = formatStr[1:]
@@ -302,17 +302,26 @@ class JsonToCsv(object):
 
         # Validate:
 
+        PLEASE_CLOSE_STR = ' Please close (with "]") all items opened. Each "[" needs a matching close "]".'
+
+
+        errorStr = 'Error: Finished parsing formatStr pattern, '
+
         if not lineItems:
-            raise ParseError('No line item defined.')
+            raise ParseError(errorStr + 'No line items defined. Nothing over which to iterate.')
 
-        # TODO: Keep a tuple of open line items so we can be specific and track that we don't close then try to open another
+        if currentLevels:
+            errorStr += 'There are still %d open items on the current level ("%s" is closest key that is still open)' %(len(currentLevels), currentLevels[-1][1][0])
+            if openLineItems:
+                errorStr += ', and one or more open line items.'
 
-        if currentLevels or preLineItemIn:
-            raise ParseError('Finished parsing formatStr pattern, there are still %d levels open ( missing end square bracket "]" )' %(len(currentLevels) + preLineItemIn, ))
+            errorStr += PLEASE_CLOSE_STR
 
-        # TODO: Update this
-        if lineItemOpen:
-            raise ParseError('Finished parsing formatStr pattern, line item "%s" is still open ( missing end square bracket "]" )' %(lineItems[0][1], ))
+            raise ParseError(errorStr)
+
+        if openLineItems:
+            raise ParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem[0] for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
+
 
         # Set calculated items on current object
         self.rules = rules
@@ -876,7 +885,7 @@ class Rule(object):
 
             if cur is None:
                 # We could not walk based on the format pattern.
-                #  TODO: Maybe make this configurable different from null?
+                #  TODO: Maybe make this (unreachable) configurable different from null?
                 return self.nullValue
 
 
