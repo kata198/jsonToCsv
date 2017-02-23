@@ -6,3 +6,4 @@ include jsonToCsv
 include help
 include example.py
 include example.json
+include ChangeLog

@@ -1,0 +1,5 @@
+0.2.0 - ??? ?? ????
+- Added support for multiple line items (+ operator) to be used in a single parse. A line will be generated for each instance of the inner-most line item, iterating both on inner and outers
+- Improved parsing, validation, and error messages in formatStr parsing
+- Cleanup "convertToCsv" to call "extractData" instead of being a near-copy
+- Minor cleanups and improvements
