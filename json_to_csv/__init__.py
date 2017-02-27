@@ -12,7 +12,7 @@
 
     0.2:
 
-        TODO: Support extracting data from more than just the inner-most line item
+        TODO: Support extracting data from more than just the inner-most line item - MOSTLY DONE
 '''
 
 # vim: set ts=4 sw=4 st=4 expandtab :
@@ -101,13 +101,10 @@ class JsonToCsv(object):
         # debug flag
         self.debug = debug
 
-        # lineItems - Tuple of (preLineItemLevels, The key of the item to be iterated over)
+        # lineItems - Tuple of (LineItem objects)
         #   each "preLineItemLevels" describes the levels used by Rule to walk from the previous
         #   point to the current line item key on which to iterate.
         self.lineItems = []
-
-        # rules - A list of Rule objects, which are executed on the lineItem to extract the results.
-        self.rules = None
 
         # Fill the private attributes above
         self.__parsePattern()
@@ -119,7 +116,6 @@ class JsonToCsv(object):
 
             Sets variables: 
                 * self.lineItems
-                * self.rules
 
             @return None
         '''
@@ -223,15 +219,22 @@ class JsonToCsv(object):
                 currentLevels = []
 
 
-                lineItem = itemName
+                lineItemKey = itemName
 
-                lineItems.append( (preLineItemLevels, lineItem) )
+
+                preRules = []
+                postRules = []
+                rules = preRules
+                
+                lineItem = LineItem(lineItemKey, preLineItemLevels, preRules, postRules)
+
+                lineItems.append( lineItem )
 
                 openLineItems.append( (lineItem, preLineItemLevels[:]) )
 
                 # Ensure we have bracket next
                 if formatStr[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after defining line item "%s". Got: %s.' %(lineItem, formatStr[0]))
+                    raise ParseError('Expected square bracket, "[" , after defining line item "%s". Got: %s.' %(lineItemKey, formatStr[0]))
 
                 # Strip bracket
                 formatStr = formatStr[1:]
@@ -250,7 +253,12 @@ class JsonToCsv(object):
                         closingThisLineItem = openLineItems[-1]
 
                         openLineItems = openLineItems[:-1]
+                        
                         currentLevels = closingThisLineItem[1]
+                        if openLineItems:
+                            rules = openLineItems[-1][0].postRules
+                        else:
+                            rules = []
 
                         closedALineItem = True
                     else:
@@ -320,30 +328,34 @@ class JsonToCsv(object):
             raise ParseError(errorStr)
 
         if openLineItems:
-            raise ParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem[0] for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
+            raise ParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem[0].lineItemKey for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
 
 
         # Set calculated items on current object
-        self.rules = rules
         self.lineItems = lineItems
 
 
-    def _followLineItems(self, obj, preLineItemLevels, lineItem, remainingLineItems):
+    def _followLineItems(self, obj, lineItem, remainingLineItems, existingFields=None):
         '''
             _followLineItems - Internal function to walk line items and extract data.
 
               Operates recursively
 
               @param obj <dict> - The current level in the json
-              @param preLineItemLevels list< tuple(str[type], tuple[type_data]) > - The levels to walk between "obj" and "lineItem" key
-              @param lineItem <str> - The key to iterate over
-              @param remainingLineItems list< tuple( preLineItemLevels, lineItem) > - The remaining sets of line items to walk. We recurse using this,
+              @param lineItem <LineItem obj> - Object of the current line item on which to operate
+              @param remainingLineItems list< LineItem obj > - The remaining sets of line items to walk. We recurse using this,
                             when this is empty we are at the most inner line item and thus we generate data.
 
 
               @return list<list<str>> - Outer list is lines, with each line being a list of each field data
         '''
+        if existingFields is None:
+            existingFields = []
+
         lines = []
+
+        preLineItemLevels = lineItem.preLineItemLevels
+        lineItemKey = lineItem.lineItemKey
 
         # Walk between "obj" up to the parent of the "lineItem" key
         if preLineItemLevels:
@@ -357,20 +369,29 @@ class JsonToCsv(object):
             #   outside the most inner line item.
             
             # Get tbe inner list of rules
-            rules = self.rules
-            for item in nextObj[lineItem]:
-                line = []
+            rules = lineItem.preRules + lineItem.postRules
+            for item in nextObj[lineItemKey]:
+                line = existingFields[:]
                 # Walk each rule to each value to print
                 for rule in rules:
                     line.append(rule(item))
-                # Append this line's extracted data
+
                 lines.append(line)
         else:
             # We have more walking to do before the most inner item.
             #   TODO: Allow rules to be applied on ANY level for data extraction
-            (nextPreLineItemLevels, nextLineItem) = remainingLineItems[0]
-            for item in nextObj[lineItem]:
-                lines += self._followLineItems(item, nextPreLineItemLevels, nextLineItem, remainingLineItems[1:])
+            preRules = lineItem.preRules
+            postRules = lineItem.postRules
+            nextLineItem = remainingLineItems[0]
+            for item in nextObj[lineItemKey]:
+                for rule in preRules:
+                    existingFields.append(rule(item))
+                newLines = self._followLineItems(item, nextLineItem, remainingLineItems[1:], existingFields)
+                for line in newLines:
+                    for rule in postRules:
+                        line.append(rule(item))
+
+                lines += newLines
 
         return lines
         
@@ -415,7 +436,7 @@ class JsonToCsv(object):
 
         firstLineItem = self.lineItems[0]
 
-        lines = self._followLineItems(obj, firstLineItem[0], firstLineItem[1], self.lineItems[1:])
+        lines = self._followLineItems(obj, firstLineItem, self.lineItems[1:])
 
         return lines
 
@@ -914,3 +935,36 @@ class Rule(object):
             return self.nullValue
 
 
+
+class LineItem(object):
+    '''
+        LineItem - an object representing a "Line Item", i.e. a key and associated information on which to iterate.
+    '''
+
+    __slots__ = ('lineItemKey', 'preLineItemLevels', 'preRules', 'postRules')
+
+    def __init__(self, lineItemKey, preLineItemLevels, preRules=None, postRules=None):
+        '''
+            Construct a LineItem object.
+
+            @param lineItemKey <str> - The key on which to iterate
+
+            @param preLineItemLevels list<levels> - The levels to iterate between previous object and here
+
+            @param preRules list<Rule> - This is a list of the rules to follow BEFORE transversing to the next line item.
+                You should keep reference to this and append accordingly.
+
+            @param postRules list<Rule> - This is a list of the rules to follow AFTER returning from the following line item.
+                You should keep reference to this and append accordingly.
+         '''
+        self.lineItemKey = lineItemKey
+
+        self.preLineItemLevels = preLineItemLevels
+
+        if preRules is None:
+            preRules = []
+        self.preRules = preRules
+
+        if postRules is None:
+            postRules = []
+        self.postRules = postRules
