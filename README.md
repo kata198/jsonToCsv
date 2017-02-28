@@ -115,7 +115,7 @@ Format String
 
 **Format str:**
 
-	The format str is a series of operations and keys, plus a single "line item"
+	The format str is a series of operations and keys, plus one or more "line item"s.
 
 **Keys:**
 
@@ -125,8 +125,6 @@ Format String
 	If the key is prefixed with an operation, it is used to REACH a value.
 
 	If a key is NOT prefixed with an operation, it becomes a value printed.
-
-	All keys to be printed, of course, must be AFTER the line item.
 
 	Unless you are using an op to change level, the quoted key should be followed
 	 by a comma to separate.
@@ -234,6 +232,10 @@ Nulls:
 Case sensitive:
 
 	All keys are case sensitive.
+
+Multi-Line:
+
+	Because non-quoted whitespace is ignored, you can use newlines, spaces, and tabs to make long patterns more readable.
 
 
 FULL EXAMPLE:
