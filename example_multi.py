@@ -51,11 +51,12 @@ SAMPLE_JSON_DATA = '''
 SAMPLE_JSON = json.loads(SAMPLE_JSON_DATA)
 
 # These are the headers of the fields we will extract.
-CSV_HEADERS = "PreItem,Hostname,IpAddr,Status,PuppetHostGroup,Domain,Owner,PostItem"
+CSV_HEADERS = "Date,PreItem,Hostname,IpAddr,Status,PuppetHostGroup,Domain,Owner,PostItem,Name"
 
 # This is the "parse str" using the json_to_csv meta-language for accurate extraction ( see README or from json_to_csv.help import FORMAT_HELP )
 #   explained verbosely in comments following:
 PARSE_STR = '''
+        "date",
         +"results"[
           "myBeforeKey",
             +"instances"[
@@ -75,7 +76,8 @@ PARSE_STR = '''
                 ]
             ]
             "myAfterKey"
-        ]
+        ],
+        "name",
 '''
 # Can also be written as one-liner:
 #  ".results"[ +"instances"["hostname", "ip" /"attributes"["name"="status" "value"], ."puppet_data"["hostgroup"], /"attributes"["name"="domain" "value"], /"attributes"["name"="owner" "value"]] ]
