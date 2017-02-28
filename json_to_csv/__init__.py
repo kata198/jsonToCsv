@@ -16,11 +16,12 @@
 
 # vim: set ts=4 sw=4 st=4 expandtab :
 
+import copy
 import json
 import sys
 import re
 
-from collections import defaultdict
+from collections import defaultdict, deque
 
 
 __version__ = '0.1.0'
@@ -110,7 +111,7 @@ class JsonToCsv(object):
         # lineItems - Tuple of (LineItem objects)
         #   each "preLineItemLevels" describes the levels used by Rule to walk from the previous
         #   point to the current line item key on which to iterate.
-        self.lineItems = []
+        self.lineItems = deque()
 
         # preLineItemRules - Any rules found prior to descending into the first line item
         self.preLineItemRules = []
@@ -138,15 +139,15 @@ class JsonToCsv(object):
             formatStr = re.sub('[\\' + stripChar + '][ ]+', stripChar, formatStr)
 
         # Some local copies of object-level variables. @see __init__ 
-        currentLevels = []
+        currentLevels = deque()
 
         rules = []
 
-        # Line items - list< tuple< preLevels<list<tuple<str, tuple>>> 
-        lineItems = []
+        # Line items - deque< tuple< preLevels<list<tuple<str, tuple>>> 
+        lineItems = deque()
 
-        # openLineItems - A list of open line items. list<tuple<str(name), list(levels)>>
-        openLineItems = []
+        # openLineItems - A list of open line items. deque< dict< 'lineItem' : LineItem obj, 'preLineItemLevels' : tuple<level data> > >
+        openLineItems = deque()
 
         # Track if we've ever closed a line item, after which we can't open another one.
         closedALineItem = False
@@ -185,13 +186,13 @@ class JsonToCsv(object):
                 # Strip bracket
                 formatStr = formatStr[1:]
 
-                formatStrBefore = formatStr[:]
-
                 # Extract the comparison portion ("key"="value")
                 try:
-                    (matchKey, formatStr) = _getNextQuotedKey(formatStr)
-                    if not formatStr or formatStr[0] != '=':
-                        raise ParseError('Expected = for "key"="value" following descend into list-of-maps "%s" at: %s' %(itemName, formatStrBefore))
+                    (matchKey, formatStrNew) = _getNextQuotedKey(formatStr)
+                    if not formatStrNew or formatStrNew[0] != '=':
+                        raise ParseError('Expected = for "key"="value" following descend into list-of-maps "%s" at: %s' %(itemName, formatStr))
+                    
+                    formatStr = formatStrNew
 
                     (matchValue, formatStr) = _getNextQuotedKey(formatStr[1:])
 
@@ -210,19 +211,22 @@ class JsonToCsv(object):
             elif formatStr[0] == '+':
                 # Defining the line item
 
-                # Extract and assign the line item name
-                origFormatStr = formatStr[:]
 
-                (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
+                (itemName, formatStrNew) = _getNextQuotedKey(formatStr[1:])
 
                 if closedALineItem is True:
-                    raise ParseError('Tried to start a new line item, "%s" outside of an already closed line item. At: %s' %(itemName, origFormatStr) )
+                    # Tried to open a new line item after closing another one!
+                    raise ParseError('Tried to start a new line item, "%s" outside of an already closed line item. At: %s' %(itemName, formatStr) )
+
+                formatStr = formatStrNew
+
 
                 # Take all current levels and set to "preLineItemLevels".
                 #  We will mark these as all the levels to walk between iterations (line items)
-                preLineItemLevels = currentLevels[:]
+                preLineItemLevels = currentLevels
 
-                currentLevels = []
+                # Start a fresh set of "current levels"
+                currentLevels = deque()
 
 
                 lineItemKey = itemName
@@ -235,11 +239,22 @@ class JsonToCsv(object):
                 postRules = []
                 rules = preRules
                 
+                # We attach a fixed copy of the preLineItemLevels here,
+                #   we will use a dynamic copy for the #openLineItems tracking of current open level
+                #
+                # Any future rules between here and the next line item will be appended to "preRules"
+                #   (which starts empty, but is the same reference as "rules")
+                #
+                # After this line item is closed, "rules" will become a reference to "postRules"
+                #  and we will start appending to that, until the next close.
                 lineItem = LineItem(lineItemKey, preLineItemLevels, preRules, postRules)
 
                 lineItems.append( lineItem )
 
-                openLineItems.append( (lineItem, preLineItemLevels[:]) )
+                openLineItems.append( {'lineItem' : lineItem, 
+                                       'preLineItemLevels' : copy.copy(preLineItemLevels),
+                                      }
+                )
 
                 # Ensure we have bracket next
                 if formatStr[0] != '[':
@@ -259,23 +274,21 @@ class JsonToCsv(object):
                 if len(openLineItems) > 0:
                     if len(currentLevels) <= 0:
 
-                        closingThisLineItem = openLineItems[-1]
+                        closingThisLineItem = openLineItems.pop()
 
-                        openLineItems = openLineItems[:-1]
-                        
-                        currentLevels = closingThisLineItem[1]
+                        currentLevels = closingThisLineItem['preLineItemLevels']
                         if openLineItems:
-                            rules = openLineItems[-1][0].postRules
+                            rules = openLineItems[-1]['lineItem'].postRules
                         else:
                             rules = self.postLineItemRules
 
                         closedALineItem = True
                     else:
                         # All good, remove current level
-                        currentLevels = currentLevels[:-1]
+                        currentLevels.pop()
 
                 elif len(currentLevels) > 0:
-                    currentLevels = currentLevels[:-1]
+                    currentLevels.pop()
                 else:
                     raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
 
@@ -288,7 +301,7 @@ class JsonToCsv(object):
 
             elif formatStr[0] == '"':
                 # A quoted key (for printing).
-                #  NOTE: This is NOT an operative-prefixed quoted key
+                #  This is NOT an operative-prefixed quoted key
                 (itemName, formatStr) = _getNextQuotedKey(formatStr)
 
                 # Build the rule to transverse either from head -> here (pre line item),
@@ -335,7 +348,7 @@ class JsonToCsv(object):
             raise ParseError(errorStr)
 
         if openLineItems:
-            raise ParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem[0].lineItemKey for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
+            raise ParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem['lineItem'].lineItemKey for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
 
 
         # Set calculated items on current object
@@ -350,7 +363,7 @@ class JsonToCsv(object):
 
               @param obj <dict> - The current level in the json
               @param lineItem <LineItem obj> - Object of the current line item on which to operate
-              @param remainingLineItems list< LineItem obj > - The remaining sets of line items to walk. We recurse using this,
+              @param remainingLineItems deque< LineItem obj > - The remaining sets of line items to walk. We recurse using this,
                             when this is empty we are at the most inner line item and thus we generate data.
 
 
@@ -391,7 +404,7 @@ class JsonToCsv(object):
             #     variables found at this level post-descend.
             preRules = lineItem.preRules
             postRules = lineItem.postRules
-            nextLineItem = remainingLineItems[0]
+            nextLineItem = remainingLineItems.popleft()
             for item in nextObj[lineItemKey]:
 
                 # If any pre-descend rules are present, add onto the existingFields array before descending
@@ -401,7 +414,7 @@ class JsonToCsv(object):
                     existingFields += preFields
 
                 # Descend and gather data into newLines
-                newLines = self._followLineItems(item, nextLineItem, remainingLineItems[1:], existingFields)
+                newLines = self._followLineItems(item, nextLineItem, remainingLineItems, existingFields)
                 if postRules:
                     postFields = [rule(item) for rule in postRules]
 
@@ -451,11 +464,13 @@ class JsonToCsv(object):
         else:
             obj = data
 
-        firstLineItem = self.lineItems[0]
+        lineItems = copy.copy(self.lineItems)
+
+        firstLineItem = lineItems.popleft()
 
         existingFields = [rule(obj) for rule in self.preLineItemRules]
 
-        lines = self._followLineItems(obj, firstLineItem, self.lineItems[1:], existingFields)
+        lines = self._followLineItems(obj, firstLineItem, lineItems, existingFields)
         if self.postLineItemRules:
             postFields = [rule(obj) for rule in self.postLineItemRules]
 
@@ -552,21 +567,19 @@ class JsonToCsv(object):
 
         # Extract the "joinKey" from the csvData1 (left) into csvData1Map
         for data in csvData1:
-            # Copy data (list-by-ref)
-            data = data[:]
 
             joinFieldData = data[joinFieldNum1]
             # If duplicate found we cannot continue the join
             if joinFieldData in csvData1Map:
                 raise KeyError('Duplicate data in joinField %d on csvData1: %s' %(joinFieldNum1, joinFieldData))
 
-            csvData1Map[joinFieldData] = data
+            # Copy data (list-by-ref)
+            csvData1Map[joinFieldData] = data[:]
 
 
         # Extract the "joinKey" from csvData2, and merge if possible
         for data in csvData2:
             # Copy data (list-by-ref)
-            data = data[:]
 
             joinFieldData = data[joinFieldNum2]
             if joinFieldData in csvData2Keys:
@@ -580,7 +593,7 @@ class JsonToCsv(object):
                 combinedData.append(csvData1Map[joinFieldData] + newData)
             else:
                 # Otherwise, this data only exists in dataset 2
-                onlyData2.append(data)
+                onlyData2.append(data[:])
 
         # Find what was only in dataset 1
         onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
@@ -641,12 +654,11 @@ class JsonToCsv(object):
 
         # Extract the "joinKey" from the csvData1 (left) into csvData1Map
         for data in csvData1:
-            # Copy data (list-by-ref)
-            data = data[:]
 
             joinFieldData = data[joinFieldNum1]
 
-            csvData1Map[joinFieldData].append(data)
+            # Copy data (list-by-ref)
+            csvData1Map[joinFieldData].append(data[:])
 
 
         # Extract the "joinKey" from csvData2, and merge if possible
@@ -801,9 +813,8 @@ class Rule(object):
 
             @param debug <bool> Default False - If True, will print some info to stderr.
         '''
-
         # levels list<tuple> - The levels from parent to transverse. Copy.
-        self.levels = levels[:]
+        self.levels = copy.copy(levels)
 
         # keyName <str> - The final keyname to print 
         self.keyName = keyName
@@ -917,7 +928,7 @@ class Rule(object):
         '''
 
         keyName = self.keyName
-        levels = self.levels[:]
+        levels = self.levels
         debug = self.debug
 
         doneLevels = []
