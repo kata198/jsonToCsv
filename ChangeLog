@@ -1,5 +1,7 @@
-0.2.0 - ??? ?? ????
+0.2.0 - Feb 28 2017
 - Added support for multiple line items (+ operator) to be used in a single parse. A line will be generated for each instance of the inner-most line item, iterating both on inner and outers
 - Improved parsing, validation, and error messages in formatStr parsing
 - Cleanup "convertToCsv" to call "extractData" instead of being a near-copy
 - Minor cleanups and improvements
+- Lots of optimizations in both performance and memory utilization
+- Support keys at any level, even outside the first line item.
