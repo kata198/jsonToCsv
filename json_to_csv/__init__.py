@@ -372,10 +372,12 @@ class JsonToCsv(object):
             # Get the inner list of rules (note, postRules should be empty here)
             rules = lineItem.preRules + lineItem.postRules
             for item in nextObj[lineItemKey]:
+                
+                # Copy any previously-gathered fields into this line
                 line = existingFields[:]
+
                 # Walk each rule to each value to print
-                for rule in rules:
-                    line.append(rule(item))
+                line += [rule(item) for rule in rules]
 
                 lines.append(line)
         else:
@@ -387,13 +389,20 @@ class JsonToCsv(object):
             postRules = lineItem.postRules
             nextLineItem = remainingLineItems[0]
             for item in nextObj[lineItemKey]:
-                for rule in preRules:
-                    existingFields.append(rule(item))
+
+                # If any pre-descend rules are present, add onto the existingFields array before descending
+                if preRules:
+                    preFields = [rule(item) for rule in preRules]
+
+                    existingFields += preFields
+
+                # Descend and gather data into newLines
                 newLines = self._followLineItems(item, nextLineItem, remainingLineItems[1:], existingFields)
                 if postRules:
-                    for line in newLines:
-                        for rule in postRules:
-                            line.append(rule(item))
+                    postFields = [rule(item) for rule in postRules]
+
+                    for newLine in newLines:
+                        newLine += postFields
 
                 lines += newLines
 
@@ -440,16 +449,14 @@ class JsonToCsv(object):
 
         firstLineItem = self.lineItems[0]
 
-        existingFields = []
-
-        for rule in self.preLineItemRules:
-            existingFields.append(rule(obj))
+        existingFields = [rule(obj) for rule in self.preLineItemRules]
 
         lines = self._followLineItems(obj, firstLineItem, self.lineItems[1:], existingFields)
         if self.postLineItemRules:
+            postFields = [rule(obj) for rule in self.postLineItemRules]
+
             for line in lines:
-                for rule in self.postLineItemRules:
-                    line.append(rule(obj))
+                line += postFields
 
         return lines
 
