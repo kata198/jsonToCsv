@@ -106,6 +106,12 @@ class JsonToCsv(object):
         #   point to the current line item key on which to iterate.
         self.lineItems = []
 
+        # preLineItemRules - Any rules found prior to descending into the first line item
+        self.preLineItemRules = []
+
+        # postLineItemRules - Any rules found AFTER closing the first line item
+        self.postLineItemRules = []
+
         # Fill the private attributes above
         self.__parsePattern()
 
@@ -210,17 +216,14 @@ class JsonToCsv(object):
                 #  We will mark these as all the levels to walk between iterations (line items)
                 preLineItemLevels = currentLevels[:]
 
-                if not lineItems:
-
-                    # TODO: Support rules associated by line item, not just the most inner line item
-                    if rules:
-                        raise ParseError('Keys are not allowed before a line item is defined.')
-
                 currentLevels = []
 
 
                 lineItemKey = itemName
 
+
+                if not lineItems:
+                    self.preLineItemRules = rules
 
                 preRules = []
                 postRules = []
@@ -258,7 +261,7 @@ class JsonToCsv(object):
                         if openLineItems:
                             rules = openLineItems[-1][0].postRules
                         else:
-                            rules = []
+                            rules = self.postLineItemRules
 
                         closedALineItem = True
                     else:
@@ -364,11 +367,9 @@ class JsonToCsv(object):
             nextObj = obj
 
         if not remainingLineItems:
-            # We are on the most inner, so extract the data into a set of lines to return
-            #   TODO: Allow rules to be applied on ANY level, to support extraction of data
-            #   outside the most inner line item.
+            # We are on the most inner, so simply extract the data into lines for return
             
-            # Get tbe inner list of rules
+            # Get the inner list of rules (note, postRules should be empty here)
             rules = lineItem.preRules + lineItem.postRules
             for item in nextObj[lineItemKey]:
                 line = existingFields[:]
@@ -378,8 +379,10 @@ class JsonToCsv(object):
 
                 lines.append(line)
         else:
-            # We have more walking to do before the most inner item.
-            #   TODO: Allow rules to be applied on ANY level for data extraction
+            # Append to the existingFields and "pre" rules prior to descend, 
+            #   then recurse toward the most inner lineItem and save the results into a "newLines" variable
+            #   then, if there are postRules, iterate over all those newLines and append any extra
+            #     variables found at this level post-descend.
             preRules = lineItem.preRules
             postRules = lineItem.postRules
             nextLineItem = remainingLineItems[0]
@@ -387,9 +390,10 @@ class JsonToCsv(object):
                 for rule in preRules:
                     existingFields.append(rule(item))
                 newLines = self._followLineItems(item, nextLineItem, remainingLineItems[1:], existingFields)
-                for line in newLines:
-                    for rule in postRules:
-                        line.append(rule(item))
+                if postRules:
+                    for line in newLines:
+                        for rule in postRules:
+                            line.append(rule(item))
 
                 lines += newLines
 
@@ -436,7 +440,16 @@ class JsonToCsv(object):
 
         firstLineItem = self.lineItems[0]
 
-        lines = self._followLineItems(obj, firstLineItem, self.lineItems[1:])
+        existingFields = []
+
+        for rule in self.preLineItemRules:
+            existingFields.append(rule(obj))
+
+        lines = self._followLineItems(obj, firstLineItem, self.lineItems[1:], existingFields)
+        if self.postLineItemRules:
+            for line in lines:
+                for rule in self.postLineItemRules:
+                    line.append(rule(obj))
 
         return lines
 
