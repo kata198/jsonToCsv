@@ -12,7 +12,6 @@
 
     0.2:
 
-        TODO: Support extracting data from more than just the inner-most line item - MOSTLY DONE
 '''
 
 # vim: set ts=4 sw=4 st=4 expandtab :
@@ -70,6 +69,15 @@ def _getNextQuotedKey(formatStr):
     return (itemName, formatStr[matchObj.span()[1]:])
 
 
+# These are characters with a defined operation
+OPER_CHARS = (',', '.', '[', ']', '/', '+')
+
+# These are whitespace characters. When encountered on their own
+#  (i.e. not part of parsing an operation) they are stripped.
+WHITESPACE_CHARS = (' ', ',', '\n', '\r', '\t')
+
+# Pattern used to strip all whitespace starting at current position to next non-whitespace
+WHITESPACE_CHAR_PATTERN = '^[%s]+' %(''.join(['\\' + whitespaceChar for whitespaceChar in WHITESPACE_CHARS]), )
 
 class JsonToCsv(object):
     '''
@@ -78,8 +86,6 @@ class JsonToCsv(object):
 
     '''
 
-    # These are characters with a defined operation
-    OPER_CHARS = (',', '.', '[', ']', '/', '+')
 
     def __init__(self, formatStr, nullValue='', debug=False):
         '''
@@ -127,8 +133,8 @@ class JsonToCsv(object):
         '''
 
         # Cleanup some whitespace
-        formatStr = self.formatStr[:].strip()
-        for stripChar in self.OPER_CHARS:
+        formatStr = self.formatStr.strip()
+        for stripChar in OPER_CHARS:
             formatStr = re.sub('[\\' + stripChar + '][ ]+', stripChar, formatStr)
 
         # Some local copies of object-level variables. @see __init__ 
@@ -296,13 +302,11 @@ class JsonToCsv(object):
                     formatStr = formatStr[1:]
 
                 continue
-            elif formatStr[0] in (',', ' ', '\n', '\r', '\t'):
-                # I don't like that this rule contains comma, because really it means we would parse
-                #  something like: +"something"[,,,,,,,,"key"] as valid, which it is... but.... sigh..
-                #  anyway, better just be safe and strip off meaningless characters.
-                #
-                # The newline and tab and space portions mean these formatStrs can really be multi-line
-                formatStr = formatStr[1:]
+            elif formatStr[0] in WHITESPACE_CHARS:
+
+                # Jump to the next non-whitespace character. This allows the patterns to be written
+                #  multi-line or otherwise spaced-out and readable.
+                formatStr = re.sub(WHITESPACE_CHAR_PATTERN, '', formatStr)
 
                 continue
             else:
