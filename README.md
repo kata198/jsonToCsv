@@ -14,79 +14,6 @@ The constructor requires only the format string \[formatStr\] ( a string written
 You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields \[nullValue\]
 
 
-
-Extracting Data
----------------
-
-Once you've written your formatStr and created the JsonToCsv object, you're ready to start parsing!
-
-**convertToCsv**
-
-The most basic and direct method is the "convertToCsv" function. You can pass in a string (raw data) or a dict (already parsed e.g. by 'json' module ), and you'll be output the csv lines, ready to be passed to the "print" function. 
-
-If you set the optional parameter "asList" to True (default is False), instead of being returned a giant string, you'll get a list where each element represents a line.
-
-
-**extractData**
-
-Likely however, you don't just need to convert it directly to csv if you are working with the module (it is recommended if that is the case, i.e. if you have no extra processing  or analysis or whatever required, that you use the provided "jsonToCsv" function).
-
-Some more complicated use-cases where "extractData" is required are:
-
-* Creating alternate formats of output (like TSV or a text table, or plugging into a GUI)
-* Analysis of the data, i.e. filtering or modifying
-* Joining data from multiple JSON entries (see that section for more info)
-* Whatever you need to do
-
-
-*extractData* works the same way as *convertToCsv*, that is you can pass in a string of a json response, or a dict (the already converted object by json module).
-
-
-
-**dataToStr**
-
-For many of the use-cases where you need to post-process or post-filter the data or whatever, you will eventually want to convert it to a printable string.
-
-This is a function that does just that; you pass in the list-of-lists *extractData* returns, and you get a complete string returned, ready-to-go for the print function.
-
-
-**findDuplicates**
-
-This function can help you identify when multiple lines contain the same data in the same field. 
-
-You pass in the data extracted by *extractData*, pick a zero-origin "fieldNum", which dictates which field to check on each line for duplicate values.
-
-If the "flat" argument is False (default), the output is a map where the keys are all the field values which had duplicate entries.
-
-If "flat" is True, the output is just a list of list-of field values. Basically, the data from extractData, but ONLY included if it has a duplicate in the chosen field.
-
-
-**joinCsv**
-
-joinCsv will take in two sets of list<list<str>> (i.e. returned frmo "extractData"), and two 0-origin numbers, joinFieldNum1 (what is the index of the "join field" in the first dataset) and joinFieldNum2.
-
-So for example, you may have two sets of data, both describing people. "Social Security Number" could be the 4th field from zero on one of them, and the 0th on another dataset. So if you want to combine these two datasets, you can use this method to do so, bt joining those fields (i.e. any instances where there's a field match between the two joinFieldNum columns, that index is removed from the second dataset, sand the second dataset is appended to the first.
-
-**multiJoinCsv**
-
-Same as joinCsv, but joinCsv allows no duplicates within a dataset itself. So going with the data above, imagine if the same social security number had two people's names in one dataset.... well which one is rght? A computer can't determine that.
-
-So this function will give a "best effort", in the above example, you'd get person X's dataset attached to whoemver had that social security number listed. So if you have a field duplicated twice in both csvData1 and csvData2, you'll end up with 4 lines total:
-
-
-* A1 B1
-* A2 B1
-* A1 B2
-* A2 B3
-
-This matches very eagerly, but you may start to get some invalid data at this point.
-
-
-TODO: write more.
-
-TODO: finish
-
-
 Module PyDoc
 ------------
 
@@ -112,6 +39,7 @@ Usage: jsonToCsv [format str]
 Format String
 =============
 
+Because csv is a fixed-format field and json is free-format, a meta language had to be developed to describe the various movements to find and output values into a fixerd format. This section describes that format.
 
 **Format str:**
 
@@ -129,6 +57,7 @@ Format String
 	Unless you are using an op to change level, the quoted key should be followed
 	 by a comma to separate.
 
+	A key may be anywhere before, after, or inside a line item, and the keys will be output in the order they appear.
 
 	Examples:
 
@@ -150,8 +79,6 @@ Format String
 	  one line of output per each innermost line item found.
 
 	You may not close a line item and then try to open another one.
-
-	All keys to be printed must be after the first line item.
 
 
 	Examples:
@@ -236,6 +163,78 @@ Case sensitive:
 Multi-Line:
 
 	Because non-quoted whitespace is ignored, you can use newlines, spaces, and tabs to make long patterns more readable.
+
+
+Extracting Data
+---------------
+
+Once you've written your formatStr and created the JsonToCsv object, you're ready to start parsing!
+
+**convertToCsv**
+
+The most basic and direct method is the "convertToCsv" function. You can pass in a string (raw data) or a dict (already parsed e.g. by 'json' module ), and you'll be output the csv lines, ready to be passed to the "print" function. 
+
+If you set the optional parameter "asList" to True (default is False), instead of being returned a giant string, you'll get a list where each element represents a line.
+
+
+**extractData**
+
+Likely however, you don't just need to convert it directly to csv if you are working with the module (it is recommended if that is the case, i.e. if you have no extra processing  or analysis or whatever required, that you use the provided "jsonToCsv" function).
+
+Some more complicated use-cases where "extractData" is required are:
+
+* Creating alternate formats of output (like TSV or a text table, or plugging into a GUI)
+* Analysis of the data, i.e. filtering or modifying
+* Joining data from multiple JSON entries (see that section for more info)
+* Whatever you need to do
+
+
+*extractData* works the same way as *convertToCsv*, that is you can pass in a string of a json response, or a dict (the already converted object by json module).
+
+
+
+**dataToStr**
+
+For many of the use-cases where you need to post-process or post-filter the data or whatever, you will eventually want to convert it to a printable string.
+
+This is a function that does just that; you pass in the list-of-lists *extractData* returns, and you get a complete string returned, ready-to-go for the print function.
+
+
+**findDuplicates**
+
+This function can help you identify when multiple lines contain the same data in the same field. 
+
+You pass in the data extracted by *extractData*, pick a zero-origin "fieldNum", which dictates which field to check on each line for duplicate values.
+
+If the "flat" argument is False (default), the output is a map where the keys are all the field values which had duplicate entries.
+
+If "flat" is True, the output is just a list of list-of field values. Basically, the data from extractData, but ONLY included if it has a duplicate in the chosen field.
+
+
+**joinCsv**
+
+joinCsv will take in two sets of list<list<str>> (i.e. returned frmo "extractData"), and two 0-origin numbers, joinFieldNum1 (what is the index of the "join field" in the first dataset) and joinFieldNum2.
+
+So for example, you may have two sets of data, both describing people. "Social Security Number" could be the 4th field from zero on one of them, and the 0th on another dataset. So if you want to combine these two datasets, you can use this method to do so, bt joining those fields (i.e. any instances where there's a field match between the two joinFieldNum columns, that index is removed from the second dataset, sand the second dataset is appended to the first.
+
+**multiJoinCsv**
+
+Same as joinCsv, but joinCsv allows no duplicates within a dataset itself. So going with the data above, imagine if the same social security number had two people's names in one dataset.... well which one is rght? A computer can't determine that.
+
+So this function will give a "best effort", in the above example, you'd get person X's dataset attached to whoemver had that social security number listed. So if you have a field duplicated twice in both csvData1 and csvData2, you'll end up with 4 lines total:
+
+
+* A1 B1
+* A2 B1
+* A1 B2
+* A2 B3
+
+This matches very eagerly, but you may start to get some invalid data at this point.
+
+
+TODO: write more.
+
+TODO: finish readme docs
 
 
 FULL EXAMPLE:
