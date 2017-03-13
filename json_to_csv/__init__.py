@@ -405,16 +405,21 @@ class JsonToCsv(object):
             preRules = lineItem.preRules
             postRules = lineItem.postRules
             nextLineItem = remainingLineItems.popleft()
+
             for item in nextObj[lineItemKey]:
 
-                # If any pre-descend rules are present, add onto the existingFields array before descending
+                # Make a copy of the existing fields gathered prior to this level,
+                #  as we don't want to pass this level's pre and posts back up
+                theseExistingFields = existingFields[:]
+
+                # If any pre-descend rules are present, add onto the theseExistingFields array before descending
                 if preRules:
                     preFields = [rule(item) for rule in preRules]
 
-                    existingFields += preFields
+                    theseExistingFields += preFields
 
                 # Descend and gather data into newLines
-                newLines = self._followLineItems(item, nextLineItem, remainingLineItems, existingFields)
+                newLines = self._followLineItems(item, nextLineItem, remainingLineItems, theseExistingFields)
                 if postRules:
                     postFields = [rule(item) for rule in postRules]
 
