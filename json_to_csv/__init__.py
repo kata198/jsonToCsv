@@ -24,8 +24,8 @@ import re
 from collections import defaultdict, deque
 
 
-__version__ = '0.2.0'
-__version_tuple__ = (0, 2, 0)
+__version__ = '0.2.1'
+__version_tuple__ = (0, 2, 1)
 
 
 # Public items
@@ -405,6 +405,8 @@ class JsonToCsv(object):
             preRules = lineItem.preRules
             postRules = lineItem.postRules
             nextLineItem = remainingLineItems.popleft()
+
+            numItems = len(nextObj[lineItemKey])
 
             for item in nextObj[lineItemKey]:
 

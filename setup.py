@@ -25,7 +25,7 @@ if __name__ == '__main__':
         long_description = summary
 
     setup(name='jsonToCsv',
-            version='0.2.0',
+            version='0.2.1',
             packages=['json_to_csv'],
             scripts=['jsonToCsv'],
             author='Tim Savannah',
