@@ -157,8 +157,28 @@ Multi-Line:
 Tool
 ====
 
-Usage: jsonToCsv [format str]
-  Formats a json string ( delivered via stdin ) to csv, based on provided format str.
+This module ships with a script, jsonToCsv, which can be used standalone to perform the operations.
+
+	Usage: jsonToCsv [format str]
+
+		Formats a json string ( delivered via stdin ) to csv, based on provided format str.
+
+		
+		Options:
+
+
+			--null-value=XXX          Use "XXX" instead of an empty string as the null value
+
+			--help                    Show this message
+
+			--format-help             Show usage on format string representation
+
+
+			--version                 Print the version
+
+	Example:
+
+		cat myFile.json | jsonToCsv '+"Results"["name", "org"]'
 
 
 Module PyDoc
@@ -170,7 +190,7 @@ You can access the pydoc here: http://htmlpreview.github.io/?https://github.com/
 Module
 ======
 
-The primary public module is json_to_csv.**JsonToCsv**
+The primary public module is json_to_csv.JsonToCsv
 
 The constructor requires only the format string [formatStr] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
 
