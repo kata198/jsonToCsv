@@ -22,7 +22,7 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 
 **Format str:**
 
-	The format str is a series of operations and keys, plus one or more "line item"s.
+	The format str is a series of operations and keys, plus zero or more "line item"s.
 
 **Keys:**
 
@@ -36,15 +36,16 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 	Unless you are using an op to change level, the quoted key should be followed
 	 by a comma to separate.
 
-	A key may be anywhere before, after, or inside a line item, and the keys will be output in the order they appear.
+	A key may be anywhere before, after, or inside a line item, 
+	and the keys will be output in the order they appear.
 
 	Examples:
 
-	   "hostname"   # Print key hostname at current level
+		"hostname"   # Print key hostname at current level
 
-	   ."hostname"[ # The . (map access) operator applied on the "hostname" key
+		."hostname"[ # The . (map access) operator applied on the "hostname" key
 
-	   "hostname", "cheese" # Two keys at this current level
+		"hostname", "cheese" # Two keys at this current level
 	
 
 **Line Item:**
@@ -59,17 +60,17 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 
 	You may not close a line item and then try to open another at a different level.
 
-    If you have no line items defined (like a single record), one csv line will be produced.
+	If you have no line items defined (like a single record), one csv line will be produced.
 
 
 	Examples:
 
-	  +"instances"[  # For each item in the array at current level given by key 
+		+"instances"[  # For each item in the array at current level given by key 
 	                 #   "instances", we will generate a csv line.
 
-	  ."Something"[  # Go into key at root named 'Something'
-	    +"Data"[     # Iterate over each element in the array found at "Data"
-	    +"instances" # Iterate again over each element in the array found at "instances" within each "Data"
+		."Something"[  # Go into key at root named 'Something'
+		+"Data"[     # Iterate over each element in the array found at "Data"
+		+"instances" # Iterate again over each element in the array found at "instances" within each "Data"
 
 
 **Map Access:**
@@ -127,12 +128,13 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 	See the "Example with inline comments" section for an example of both.
 
 
-Commas:
+**Commas:**
 
 	Commas should be used to separate items on the same level, so after a quoted-key for printing,
 	and after a close-bracket "]" if more items follow on that upper level.
 
-Order:
+
+**Order:**
 
 	Keys are printed as found left-to-right in the format string.
 
@@ -140,19 +142,23 @@ Order:
 	  times as you like.
 
 
-Nulls:
+**Nulls:**
 
-	 If a value in the json map is "null" or undefined, an empty string is given for the value.
+	 If a value in the json map is "null" or undefined,
+
+	 an empty string is given for the value (by default, can be changed to any string).
 
 	 If there is an error following the format string to a key (like a missing key, or bad type),
 
 	 you can pass the '--debug' flag to print on stderr WHY it returned null, each time that it does.
 
-Case sensitive:
+
+**Case sensitive:**
 
 	All keys are case sensitive.
 
-Multi-Line:
+
+**Multi-Line:**
 
 	Because non-quoted whitespace is ignored, you can use newlines, spaces, and tabs to make long patterns more readable.
 

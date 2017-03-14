@@ -22,7 +22,7 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 
 **Format str:**
 
-	The format str is a series of operations and keys, plus one or more "line item"s.
+	The format str is a series of operations and keys, plus zero or more "line item"s.
 
 **Keys:**
 
@@ -36,15 +36,16 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 	Unless you are using an op to change level, the quoted key should be followed
 	 by a comma to separate.
 
-	A key may be anywhere before, after, or inside a line item, and the keys will be output in the order they appear.
+	A key may be anywhere before, after, or inside a line item,
+	and the keys will be output in the order they appear.
 
 	Examples:
 
-	   "hostname"   # Print key hostname at current level
+		"hostname"   # Print key hostname at current level
 
-	   ."hostname"[ # The . (map access) operator applied on the "hostname" key
+		."hostname"[ # The . (map access) operator applied on the "hostname" key
 
-	   "hostname", "cheese" # Two keys at this current level
+		"hostname", "cheese" # Two keys at this current level
 	
 
 **Line Item:**
@@ -59,18 +60,18 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 
 	You may not close a line item and then try to open another one at another level.
 
-    If you have no line items defined (like a single record), one csv line will be produced.
+	If you have no line items defined (like a single record), one csv line will be produced.
 
 
 
 	Examples:
 
-	  +"instances"[  # For each item in the array at current level given by key 
+		+"instances"[  # For each item in the array at current level given by key 
 	                 #   "instances", we will generate a csv line.
 
-	  ."Something"[  # Go into key at root named 'Something'
-	    +"Data"[     # Iterate over each element in the array found at "Data"
-	    +"instances" # Iterate again over each element in the array found at "instances" within each "Data"
+		."Something"[  # Go into key at root named 'Something'
+		+"Data"[     # Iterate over each element in the array found at "Data"
+		+"instances" # Iterate again over each element in the array found at "instances" within each "Data"
 
 
 **Map Access:**
@@ -84,7 +85,7 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 
 	Example:
 
-	  ."Data"[   # Descend the 'current level' by the key "Data"
+		."Data"[   # Descend the 'current level' by the key "Data"
 
 **List-Map Access:**
 
@@ -141,7 +142,9 @@ Order:
 
 Nulls:
 
-	 If a value in the json map is "null" or undefined, an empty string is given for the value.
+	 If a value in the json map is "null" or undefined,
+
+	 an empty string is given for the value (by default, can be changed to any string).
 
 	 If there is an error following the format string to a key (like a missing key, or bad type),
 
@@ -191,11 +194,6 @@ This module ships with a script, jsonToCsv, which can be used standalone to perf
 		cat myFile.json | jsonToCsv '+"Results"["name", "org"]'
 
 
-Module PyDoc
-------------
-
-You can access the pydoc here: http://htmlpreview.github.io/?https://github.com/kata198/jsonToCsv/blob/master/doc/index.html
-
 
 Module
 ======
@@ -205,6 +203,12 @@ The primary public module is json_to_csv.JsonToCsv
 The constructor requires only the format string [formatStr] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
 
 You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields [nullValue]
+
+
+Module PyDoc
+------------
+
+You can access the pydoc here: http://htmlpreview.github.io/?https://github.com/kata198/jsonToCsv/blob/master/doc/index.html
 
 
 
@@ -250,7 +254,7 @@ It then has the following optional arguments:
 
 * separator - Defaults to comma, may use tab for TSV, or whatever you want
 
-* lineSeparator - Defaults to CRLF (\r\n) which is the RFC4180 standard, but you may use something else (like \n).
+* lineSeparator - Defaults to CRLF (\\r\\n) which is the RFC4180 standard, but you may use something else (like \\n).
 
 * quoteFields - This you can set to True or False to explicitly quote or not quote data per RFC4180 standards. The default is the string "smart", which means the data will be scanned to see if it needs quoting, and if so, it will quote the data. Otherwise, it will not. Generally you will want to keep this at the default.
 

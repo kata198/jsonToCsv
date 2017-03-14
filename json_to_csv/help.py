@@ -10,20 +10,23 @@
 # vim: set ts=4 sw=4 st=4 expandtab :
 
 FORMAT_HELP = '''
-Format str:
+**Format str:**
 
-   The format str is a series of operations and keys, plus one or more "line item"s
+   The format str is a series of operations and keys, plus zero or more "line item"s
 
-Keys:
+**Keys:**
 
-   Every key name listed in the format string is quoted with double-quotes.
+    Every key name listed in the format string is quoted with double-quotes.
 
-   If the key is prefixed with an operation, it is used to REACH a value.
+    If the key is prefixed with an operation, it is used to REACH a value.
 
-   If a key is NOT prefixed with an operation, it becomes a value printed.
+    If a key is NOT prefixed with an operation, it becomes a value printed.
 
-   Unless you are using an op to change level, the quoted key should be followed
+    Unless you are using an op to change level, the quoted key should be followed
      by a comma to separate.
+
+    A key may be anywhere before, after, or inside a line item, 
+    and the keys will be output in the order they appear.
 
     Examples:
 
@@ -34,7 +37,7 @@ Keys:
        "hostname", "cheese" # Two keys at this current level
 
 
-Line Item:
+**Line Item:**
 
     A "line item" is the key iterated-over to produce each line of the csv.
 
@@ -58,7 +61,7 @@ Line Item:
         +"instances" # Iterate again over each element in the array found at "instances" within each "Data"
 
 
- Map Access:
+**Map Access:**
 
     The "map access" operator means to access a key at the current level
 
@@ -72,7 +75,7 @@ Line Item:
       ."Data"[   # Descend the 'current level' by the key "Data"
 
 
-  List-Map Access:
+**List-Map Access:**
 
     The "list-map access" operator means to search a list of maps at the current level,
       found under the given key, until a key in that map matches a given value.
@@ -89,7 +92,7 @@ Line Item:
       /"attributes"["key"="color"
 
 
-  Moving Between Levels:
+**Moving Between Levels:**
 
     You'll notice that every op descends a level, represented by being followed by a square bracket, "[".
 
@@ -98,11 +101,11 @@ Line Item:
     All open brackets must be closed before the format string ends.
 
 
-  Whitespace Characters:
+**Whitespace Characters:**
 
     Spaces and newlines are generally ignored, and can be used to make things look nice.
 
-  Commas:
+**Commas:**
 
     Commas should be used to separate items on the same level, so after a quoted-key for printing,
 
@@ -119,7 +122,8 @@ Line Item:
 
     See the "Example with inline comments" section for an example of both.
 
-   Order:
+
+**Order:**
 
      Keys are printed as found left-to-right in the format string.
 
@@ -127,19 +131,23 @@ Line Item:
        times as you like.
 
 
-   Nulls:
+**Nulls:**
 
-     If a value in the json map is "null" or undefined, an empty string is given for the value.
+     If a value in the json map is "null" or undefined,
+
+     an empty string is given for the value (by default, can be changed to any string).
 
      If there is an error following the format string to a key (like a missing key, or bad type),
 
        you can pass the '--debug' flag to print on stderr WHY it returned null, each time that it does.
 
-    Case sensitive:
+
+**Case sensitive:**
 
       All keys are case sensitive.
 
-     Multi-Line:
+
+**Multi-Line:**
 
        Because non-quoted whitespace is ignored, you can use newlines, spaces, and tabs to make long patterns more readable.
 
