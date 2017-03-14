@@ -5,12 +5,9 @@
 
     json_to_csv - Module for converting json data to csv data, and various supplementry methods.
 
-    0.1:
+    Resulting csv will confirm to RFC 4180 "Common format for MIME Type for Comma-Separated Values (CSV) Files
 
-        TODO: Does not handle double-quote embedded in data
-        TODO: Does not handle commas embedded in data
-
-    0.2:
+    May also be used to just extract data into lists.
 
 '''
 
@@ -39,7 +36,9 @@ __all__ = ('FormatStrParseError', 'JsonToCsv', )
 class JsonToCsv(object):
     '''
         JsonToCsv - Public class containing methods for dealing with converting
-            Json to csv data, merging data, etc
+            Json to csv data, merging data, etc.
+
+            Designed to produce RFC 4180 csv output from json data using a meta language.
 
     '''
 
@@ -117,40 +116,62 @@ class JsonToCsv(object):
 
         return lines
 
-    def convertToCsv(self, data, asList=False):
+    def convertToCsv(self, data, quoteFields="smart", lineSeparator='\r\n'):
         '''
             convertToCsv - Convert given data to csv.
 
+               Alias to calling:
+                 extractData
+            
+               and then passing those results to:
+                 dataToStr
+
             @param data <string/dict> - Either a string of json data, or a dict
-            @param asList <bool> Default False - If True, will return a list of the lines (as strings), otherwise will just return a string.
+
+            @param quoteFields <bool or 'smart'> Default 'smart' -
+                If False, fields will not be quoted (thus a comma or newline, etc will break the output, but it looks neater on screen)
+                If True, fields will always be quoted (protecting against commas, allows values to contain newlines, etc)
+                If 'smart' (default), the need to quote fields will be auto-determined. This may take slighly longer on HUGE datasets,
+                  but is generally okay.
+
+            @param lineSeparator <str> - This will separate the lines. RFC4180 defines CRLF as the preferred ending, but implementations
+                can vary (i.e. unix generally just uses '\n'). If you plan to have newlines ('\n') in the data, I suggest using '\r\n' as
+                the lineSeparator as otherwise many implementations (like python's own csv module) will swallow the newline within the data.
 
             @return <list/str> - see "asList" param above.
         '''
 
         lines = self.extractData(data)
 
-        # Convert each line to a csv string
-        lines = [','.join(line) for line in lines]
-
-        # If asList, we return a list of strings (lines), otherwise, we return a string
-        if asList:
-            return lines
-
-        return '\n'.join(lines)
+        return JsonToCsv.dataToStr(lines, separator=',', quoteFields=quoteFields, lineSeparator=lineSeparator)
 
     ################################################
     #######      Static Public Methods       #######
     ################################################
 
     @staticmethod
-    def dataToStr(csvData, separator=','):
+    def dataToStr(csvData, separator=',', quoteFields="smart", lineSeparator='\r\n'):
         '''
             dataToStr - Convert a list of lists of csv data to a string.
 
             @param csvData list<list> - A list of lists, first list is lines, inner-list are values.
-            @param separator <str> - Default ',' this is the separator used between fields (i.e. would be a tab in TSV format)
 
               This is the data returned by JsonToCsv.extractData
+
+            @param separator <str> - Default ',' this is the separator used between fields (i.e. would be a tab in TSV format)
+
+            @param quoteFields <bool or 'smart'> Default 'smart' -
+                If False, fields will not be quoted (thus a comma or newline, etc will break the output, but it looks neater on screen)
+                If True, fields will always be quoted (protecting against commas, allows values to contain newlines, etc)
+                If 'smart' (default), the need to quote fields will be auto-determined. This may take slighly longer on HUGE datasets,
+                  but is generally okay. Quotes within a field (") will be replaced with two adjacent quotes ("") as per RFC4180
+
+                  Use 'smart' unless you REALLY need to specify otherwise, as 'smart' will always produce RFC4180 csv files
+
+            @param lineSeparator <str> - This will separate the lines. RFC4180 defines CRLF as the preferred ending, but implementations
+                can vary (i.e. unix generally just uses '\n'). If you plan to have newlines ('\n') in the data, I suggest using '\r\n' as
+                the lineSeparator as otherwise many implementations (like python's own csv module) will swallow the newline within the data.
+
 
             @return str - csv data
         '''
@@ -159,10 +180,28 @@ class JsonToCsv(object):
         if not isinstance(csvData, list) or not isinstance(csvData[0], list):
             raise ValueError('csvData is not a list-of-lists. dataToStr is meant to convert the return of "extractData" method to csv data.')
 
-        # Each line is the comma-joining (or whatever #separator is) of its values
-        lines = [separator.join(items) for items in csvData]
+        if quoteFields == 'smart':
+            lines = []
 
-        return '\n'.join(lines)
+            flatData = ''.join([''.join(items) for items in csvData])
+
+            reqSmartQuoteRe = re.compile('(%s|[\\r\\n])' %(separator,))
+
+            if bool(reqSmartQuoteRe.search(flatData)):
+                quoteFields = True
+            else:
+                quoteFields = False
+
+        if quoteFields is False:
+            # Each line is the comma-joining (or whatever #separator is) of its values
+            lines = [separator.join(items) for items in csvData]
+
+        else:
+            # RFC 4180 Specifies that if quotes are found in the data and
+            #   the data is being quoted, than any quotes within the data must be replaced with double quote ("")
+            lines = [separator.join(['"%s"' %(item.replace('"', '""'), ) for item in items]) for items in csvData]
+
+        return lineSeparator.join(lines)
 
     @staticmethod
     def joinCsv(csvData1, joinFieldNum1, csvData2, joinFieldNum2):
@@ -814,5 +853,6 @@ WHITESPACE_CLEAR_RE = re.compile('^[%s]+' %(''.join(['\\' + whitespaceChar for w
 # Pattern to clear comments found in format str, and all whitespace and further lines
 #  with only comments or whitespace until we reach a non-commented character
 COMMENT_CLEAR_RE = re.compile('^([\r\n \t]*[#].*[\r\n \t]*)+')
+
 
 # vim: set ts=4 sw=4 st=4 expandtab :
