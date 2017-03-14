@@ -101,13 +101,18 @@ class JsonToCsv(object):
         else:
             obj = data
 
-        lineItems = copy.copy(self.lineItems)
-
-        firstLineItem = lineItems.popleft()
-
         existingFields = [rule(obj) for rule in self.preLineItemRules]
 
-        lines = self._followLineItems(obj, firstLineItem, lineItems, existingFields)
+        if len(self.lineItems):
+            lineItems = copy.copy(self.lineItems)
+
+            firstLineItem = lineItems.popleft()
+
+
+            lines = self._followLineItems(obj, firstLineItem, lineItems, existingFields)
+        else:
+            lines = [existingFields[:]]
+
         if self.postLineItemRules:
             postFields = [rule(obj) for rule in self.postLineItemRules]
 
@@ -705,8 +710,10 @@ class JsonToCsv(object):
 
         errorStr = 'Error: Finished parsing formatStr pattern, '
 
+        # Support no line items
         if not lineItems:
-            raise FormatStrParseError(errorStr + 'No line items defined. Nothing over which to iterate.')
+            self.preLineItemRules = rules
+#            raise FormatStrParseError(errorStr + 'No line items defined. Nothing over which to iterate.')
 
         if currentLevels:
             errorStr += 'There are still %d open items on the current level ("%s" is closest key that is still open)' %(len(currentLevels), currentLevels[-1].levelKey)
