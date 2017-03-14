@@ -180,6 +180,9 @@ class JsonToCsv(object):
         if not isinstance(csvData, list) or not isinstance(csvData[0], list):
             raise ValueError('csvData is not a list-of-lists. dataToStr is meant to convert the return of "extractData" method to csv data.')
 
+        if quoteFields not in ('smart', True, False):
+            raise ValueError('Unknown value "%s" for quoteFields. Should be "smart", True, or False.' %(repr(quoteFields,)))
+
         if quoteFields == 'smart':
             lines = []
 
