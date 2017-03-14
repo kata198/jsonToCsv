@@ -15,7 +15,7 @@ if __name__ == '__main__':
     if dirName and os.getcwd() != dirName:
         os.chdir(dirName)
 
-    summary = 'Extract data from json objects into CSV'
+    summary = 'Extract data from json and convert to CSV'
 
     try:
         with open('README.rst', 'rt') as f:
