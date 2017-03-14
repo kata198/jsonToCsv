@@ -20,7 +20,6 @@ import copy
 import json
 import sys
 import re
-import traceback
 
 from collections import defaultdict, deque
 
@@ -160,9 +159,7 @@ class JsonToCsv(object):
             if formatStr[0] == '.':
                 # A map access on the next quoted key
                 (itemName, formatStr) = _getNextQuotedKey(formatStr[1:])
-
-                newLevel = Level_Map(itemName)
-                currentLevels.append( newLevel )
+                currentLevels.append( ( 'map', (itemName, ) ) )
 
                 # Ensure we don't end and that we have an open bracket
                 if not formatStr:
@@ -207,9 +204,7 @@ class JsonToCsv(object):
                     raise ParseError('Unknown exception parsing list-of-maps "%s" ( %s: %s ) at: %s' %(itemName, e.__class__.__name__, str(e), formatStr))
 
 
-                newLevel = Level_ListMap(itemName, matchKey, matchValue)
-
-                currentLevels.append( newLevel )
+                currentLevels.append( ('list_map', (itemName, matchKey, matchValue) ) )
 
                 continue
 
@@ -344,7 +339,7 @@ class JsonToCsv(object):
             raise ParseError(errorStr + 'No line items defined. Nothing over which to iterate.')
 
         if currentLevels:
-            errorStr += 'There are still %d open items on the current level ("%s" is closest key that is still open)' %(len(currentLevels), currentLevels[-1].levelKey)
+            errorStr += 'There are still %d open items on the current level ("%s" is closest key that is still open)' %(len(currentLevels), currentLevels[-1][1][0])
             if openLineItems:
                 errorStr += ', and one or more open line items.'
 
@@ -410,6 +405,8 @@ class JsonToCsv(object):
             preRules = lineItem.preRules
             postRules = lineItem.postRules
             nextLineItem = remainingLineItems.popleft()
+
+            numItems = len(nextObj[lineItemKey])
 
             for item in nextObj[lineItemKey]:
 
@@ -691,6 +688,8 @@ class JsonToCsv(object):
         for key in commonKeys:
             csvDataRows1 = csvData1Map[key]
 
+            allData = []
+
             for row1 in csvDataRows1:
                 row1 = row1[:]
                 for row2 in csvData2Map[key]:
@@ -796,13 +795,24 @@ class Rule(object):
 
             This object should be called and passed an object to transverse and return the key found.
 
-            @param levels - list< Level > List of objects of a subclass to "Level"
+            @param levels - List of tuples representing levels to transverse. (levelType<str>, levelData<tuple)
 
                 Level types and Data:
 
                     * 'map' - A map access. 
 
+                        Data is (<str>, )
+
+                            - first element is key to access.
+
                     * 'list_map' - Access a list of maps, searching for a key=value pair.
+
+                        Data is (<str>, <str>, <str>)
+
+                            - First element is key to access
+                            - Second element is key to search for in the list of maps
+                            - Third element is the value the 'matched' key will hold.
+
                 .
             @param keyName - The key to print after transversing levels
 
@@ -851,26 +861,63 @@ class Rule(object):
             doneLevels = []
 
         # Start at the #obj
-        curLevel = obj
+        cur = obj
 
-        for levelObj in levels:
+        for levelType, data in levels:
+            if levelType == 'map':
+                # map - Access just a single key on this level
 
-            try:
-                nextLevel = levelObj.walk(curLevel)
-            except WalkNullException as walkNullE:
-                if debug:
-                    sys.stderr.write(walkNullE.msg + ' after descending through: %s\n' %(str(doneLevels), ))
-                return None
+                (levelKey, ) = data
 
-            # TODO: Check for if nextLevel is null?
+                if levelKey not in cur:
+                    # Error, the requested key was not at this level
+                    if debug:
+                        sys.stderr.write('Returning null because map key="%s" is not contained after descending through: %s\n' %(levelKey, str(doneLevels)) )
 
-            curLevel = nextLevel
+                    return None
+
+                cur = cur[levelKey]
+
+            elif levelType == 'list_map':
+                # list_map - Access a list of maps based on a key at this level,
+                #   and look for a specific key=value pair
+
+                (levelKey, matchKey, matchValue) = data
+
+                if levelKey not in cur:
+                    # error, the specified key for this list-map was not found
+                    if debug:
+                        sys.stderr.write('Returning null because list_map key="%s" is not contained after descending through: %s\n' %(levelKey, str(doneLevels)) )
+
+                    return None
+
+                found = False
+
+                # TODO: Make sure this is a list, and make sure each entry is a dict.
+                for theMap in cur[levelKey]:
+
+                    if matchKey not in theMap:
+                        # The specified key was not in this map, move on
+                        continue
+
+                    if theMap[matchKey] == matchValue:
+                        # The specified key matches the value, this is the one!
+                        cur = theMap
+                        found = True
+                        break
+
+                # Check if we found out match
+                if found is False:
+                    if debug:
+                        sys.stderr.write('Returning null because list_map key="%s" did not contain a map where "%s" = "%s" after descending through: %s\n' %(levelKey, matchKey, matchValue, str(doneLevels)) )
+
+                    return None
 
             # Append the level we just successfully transversed
-            doneLevels.append( levelObj )
+            doneLevels.append( (levelType, data) )
 
         # At the end - return the object reached!
-        return curLevel
+        return cur
 
 
     def __call__(self, obj):
@@ -924,216 +971,16 @@ class Rule(object):
 
         except Exception as e:
             # Unknown/unexpected exception
-            exc_info = sys.exc_info()
             if debug:
                 sys.stderr.write('Returning null because unknown exception. %s: %s\n' %(e.__class__.__name__, str(e)))
-                traceback.print_exception(*exc_info, file=sys.stderr)
 
             return self.nullValue
 
 
 
-class WalkNullException(Exception):
-    '''
-        WalkNullException - Raised when a Level cannot walk down (reality doesn't match expected format).
-
-        contains 'msg' attribute which contains the message
-
-        Private
-    '''
-    
-    def __init__(self, msg=''):
-        Exception.__init__(self, msg)
-
-        self.msg = msg
-
-class Level(object):
-    '''
-        Level - Base class of any level-walk operations.
-        
-        Does not itself hold implement of walk method.
-
-        For the subclasses, calling obj.walk(level) will perform the walk from level -> newLevel, and return newLevel if found.
-
-          If newLevel could not be reached, WalkNullException will be raised with a message (.msg) defined to be the reason why (for debug purposes)
-
-        Private
-    '''
-
-
-    __slots__ = ('levelKey', )
-
-    levelType = 'undefined'
-
-    def __init__(self, levelKey):
-        '''
-            __init__ - Create a Level object.
-
-            @param levelKey <str> - The key at which we will descend into to get to the next level
-        '''
-        self.levelKey = levelKey
-
-    def walk(self, curLevel):
-        '''
-            walk - Walk from the current level (#curLevel) and return the level reached.
-
-            @param curLevel <dict> - The starting level
-
-            @return <dict> - The landing level
-
-            @raises WalkNullException - If the walk could not be completed
-        '''
-        raise NotImplementedError('Level.walk is not implemented! Use a subclass!')
-
-
-    def __str__(self):
-        return '%s( %s )' %(self.__class__.__name__, ', '.join(['%s = "%s"' %(attrName, getattr(self, attrName)) for attrName in self.__class__.__slots__]))
-
-    __repr__ = __str__
-
-
-class Level_Map(Level):
-    '''
-        Level_Map - A type of Level access which simply accesses a key on a map.
-
-        @see Level
-
-        Private
-    '''
-
-    __slots__ = Level.__slots__
-
-    levelType = 'map'
-
-    def __init__(self, levelKey):
-        '''
-            __init__ - Create a Level_Map object
-
-            @param levelKey <str> - The string on which to access
-        '''
-        Level.__init__(self, levelKey)
-
-    def walk(self, curLevel):
-        '''
-            walk - Walk from the current level accessing a key, and return that as the next level
-
-            @see Level.walk
-
-            @param curLevel <dict> - Current level
-            
-            @return <dict> - The landing level
-
-            @raises WalkNullException - If the key does not exist, or does not point to a map
-        '''
-        levelKey = self.levelKey
-
-        if levelKey not in curLevel:
-            raise WalkNullException('Returning null because map key="%s" is not contained' %(levelKey,))
-
-        ret = curLevel[levelKey]
-
-        if not isinstance(ret, dict):
-            raise WalkNullException('Returning null because map key="%s" does not point to a map' %(levelKey, ))
-
-        return curLevel[levelKey]
-
-class Level_ListMap(Level):
-    '''
-        Level_ListMap - A Level that searches a list of maps for a specific key : value
-
-        Like:
-
-       "MyKey" : [{
-             "name" : "Something",
-             "value" : "x"
-           },
-           {
-             "name" : "Blah",
-             "value" : "y"
-           }
-       ]
-
-        If we wanted to descend into the one with name equal to "Something", we would have:
-
-           ListMap("MyKey", "name", "Something")
-
-        or in the format language, 
-
-           /"MyKey"["name"="Something"
-
-        @see Level
-
-        Private
-    '''
-
-    __slots__ = tuple(list(Level.__slots__) + ['matchKey', 'matchValue'])
-
-    levelType = 'list_map'
-
-    def __init__(self, levelKey, matchKey, matchValue):
-        '''
-            __init__ - Create a Level_ListMap object
-
-            @param levelKey <str> - The key with which to find this list-of-maps
-
-            @param matchKey <str> - The key we will check against in each map
-
-            @param matchValue<str> - The value we are looking for in #matchKey to select that map
-        '''
-        Level.__init__(self, levelKey)
-
-        self.matchKey = matchKey
-        self.matchValue = matchValue
-
-    def walk(self, curLevel):
-        '''
-            walk - Walk from the current level (#curLevel) to the next level and return that next level
-
-            @param curLevel <dict> - The current level
-
-            @return <dict> - The level reached
-
-            @throws WalkNullException if:
-
-               1. #curLevel does not contain a key matching #levelKey
-               2. The result of #curLevel[#levelKey] is not a list or contains items other than maps
-               3. No match found
-
-        '''
-        (levelKey, matchKey, matchValue) = (self.levelKey, self.matchKey, self.matchValue)
-
-        if levelKey not in curLevel:
-            # error, the specified key for this list-map was not found
-            raise WalkNullException('Returning null because list_map key="%s" is not contained' % (levelKey, ))
-
-
-        found = False
-
-        if not isinstance(curLevel[levelKey], (list, tuple)):
-            raise WalkNullException('Returning null because list_map key="%s" is not a list' % (levelKey, ))
-
-        for theMap in curLevel[levelKey]:
-
-            if not isinstance(theMap, dict):
-                raise WalkNullException('Returning null because list_map key="%s" is not a list of only maps' % (levelKey, ))
-
-            if matchKey not in theMap:
-                # The specified key was not in this map, move on
-                continue
-
-            if theMap[matchKey] == matchValue:
-                # The specified key matches the value, this is the one!
-                return theMap
-
-        # If we got here, we didn't find a match..
-        raise WalkNullException('Returning null because list_map key="%s" did not contain a map where "%s" = "%s"' % (levelKey, matchKey, matchValue))
-
-
 class LineItem(object):
     '''
         LineItem - an object representing a "Line Item", i.e. a key and associated information on which to iterate.
-
-        Private
     '''
 
     __slots__ = ('lineItemKey', 'preLineItemLevels', 'preRules', 'postRules')
