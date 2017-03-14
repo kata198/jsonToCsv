@@ -1,4 +1,4 @@
-1.0.0 - 
+1.0.0 - Mar 13 2017
 - Some various refactoring, reodering and labeling to better denote the public
 vs private methods
 - Supoort comments inline to the format str (useful for multi-line format

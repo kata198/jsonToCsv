@@ -23,8 +23,8 @@ from collections import defaultdict, deque
 
 from ._private import Rule, Level, Level_Map, Level_ListMap, LineItem
 
-__version__ = '0.2.1'
-__version_tuple__ = (0, 2, 1)
+__version__ = '1.0.0'
+__version_tuple__ = (1, 0, 0)
 
 
 # Public items
