@@ -18,38 +18,6 @@ from json_to_csv import JsonToCsv, FormatStrParseError
 NULL_VALUE = "NULL"
 
 
-##### SOME SAMPLE JSON DATA, CONTAINING ONE INSTANCE ####
-
-#  In main, we will use "example_multi.json" which contains several.
-#  Each instance need not contain all the fields we want to extract,
-#    and if a field is unreachable, it will be assigned None, which when we convert to a string will take on
-#    the value assigned to #NULL_VALUE above.
-
-# TODO - update the sample json data
-SAMPLE_JSON_DATA = '''
-{
-    "results": {
-
-        "instances": [
-                      {
-                        "hostname": "examplehost1.example.com",
-                        "ip": "192.168.0.1",
-                        "attributes": [
-                               {"name": "domain", "value": "test"},
-                               {"name": "owner", "value": "James99"},
-                               {"name": "status", "value": "Complete"}
-                         ],
-                         "puppet_data" : {
-                             "hostgroup" : "at_test",
-                             "last_executed" : "1/1/2011 12:51:55"
-                         }
-                       }
-          ]
-    }
-}
-'''
-SAMPLE_JSON = json.loads(SAMPLE_JSON_DATA)
-
 # These are the headers of the fields we will extract.
 CSV_HEADERS = "Date,PreItem,Hostname,IpAddr,Status,PuppetHostGroup,Domain,Owner,PostItem,Name"
 
@@ -79,38 +47,37 @@ PARSE_STR = '''
         ],
         "name",
 '''
-# Can also be written as one-liner:
-#  ".results"[ +"instances"["hostname", "ip" /"attributes"["name"="status" "value"], ."puppet_data"["hostgroup"], /"attributes"["name"="domain" "value"], /"attributes"["name"="owner" "value"]] ]
-
 ########################                         ###############################
 ################# VERBOSE EXPLANATION OF FORMAT STR: ###########################
 ########################                         ###############################
 
-# ."results"[               # First, ascend into a map (dict) [ . operator ] under keyname, "results"
-#       +"instances"[       # "+" defines the "line item". At this point we start iterating for each element of the "instances" list.
-#            "hostname",    # A plain key-name defines a key to print at current level. So, we will print "hostname" directly inside "instances"
-#            "ip"           # Next, we will print "ip"
-#            /"attributes"["name"="status"      # We will descend into a list-of-maps named "attributes" [ / operator ],
-#                                               #   searching for where the key "name" equals "status".
-#                                               # On the first map found that satisfies that condition, 
-#                                               #   we will continue starting in that map until the bracket close "]"
-#               "value"     # Print the value of the key "value" at current level
-#            ],             # We return to the previous level (back to the current item in the "instances" array)
-#            ."puppet_data"[        # Descend into a map at current level [ . operator ] under the key "puppet_data"
-#               "hostgroup"         # Print the value of the key "hostgroup"
-#            ],             # Return to previous level ( current item in "instances" array)
-#            /"attributes"["name"="domain"      # Descend into list-of-maps [ / operator ] under key "attributes",
-#                                               # and stop where the key "name" has a value of "domain"
-#               "value"     # Print the value of the "value" key at current level
-#            ],             # Return to previous level ( current item in "instances" array )
-#            /"attributes"["name"="owner"       # Descend into list-of-maps [ / operator ] under key "attributes",
-#                                               # and stop where the key "name" has a value of "owner"
-#               "value"     # Print the value of the "value" key at current level
-#            ]              # Go back to previous level ( current item in "instances" array )
-#        ]                  # Since this closes the line item, we repeat the loop starting back at the open square bracket after
-#                           #   +"instances", i.e. we continue to the next item and line.
-#                           # Once all items in the "instances" array have been iterated over, we will go up to parent level (the "results" map at root level)
-#  ]                        # We close the final item, and we are done!
+#PARSE_STR = '''
+#        "date",             # First element of every line will be the value of
+#                            #  "date" at the top level
+#        +"results"[         # Iterate over each member of the list under "results"
+#          "myBeforeKey",    # Include "myBeforeKey" as the next item in every line
+#            +"instances"[   # Iterate over each member of the list under "instances"
+#                "hostname", # Include "hostname" under "instances" in each line
+#                "ip"        # Next key to add is "ip"
+#                /"attributes"["name"="status"  # Descend into a list-of-maps under "attributes" and look
+#                                               #  for where the key "name" has the value "status"
+#                    "value"                    # In the matched-map, print the value of the key "value"
+#                ],                             # Leave this matched map, return to one level up
+#                ."puppet_data"[                # Descend into map found at "puppet_data" key
+#                    "hostgroup"                # Print the "hostgroup" key at this level
+#                ],                             # Return to previous level
+#                /"attributes"["name"="domain"  # Descend into a list-of-maps under "attributes" and look
+#                                               #  for where the key "name" has the value "domain"
+#                    "value"                    # Print the "value" key in this matched map
+#                ],                             # Go back up to previous level
+#                /"attributes"["name"="owner"   # Descend into a list-of-maps at "attributes" and look
+#                                               #  for where the key "name" has the value "owner"
+#                    "value"                    # Print the key "value" at this level
+#                ]                              # Go back to previous level
+#            ]                                  # Go back to previous level
+#            "myAfterKey"                       # Append to all previous lines the value of key "myAfterKey"
+#        ],                                     # Go back up a level
+#        "name",                                # Append to all previous lines the value of key "name"
 
 
 

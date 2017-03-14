@@ -74,7 +74,7 @@ PARSE_STR = '''
         ]
 '''
 # Can also be written as one-liner:
-#  ".results"[ +"instances"["hostname", "ip" /"attributes"["name"="status" "value"], ."puppet_data"["hostgroup"], /"attributes"["name"="domain" "value"], /"attributes"["name"="owner" "value"]] ]
+#  ."results"[ +"instances"["hostname", "ip" /"attributes"["name"="status" "value"], ."puppet_data"["hostgroup"], /"attributes"["name"="domain" "value"], /"attributes"["name"="owner" "value"]] ]
 
 ########################                         ###############################
 ################# VERBOSE EXPLANATION OF FORMAT STR: ###########################
