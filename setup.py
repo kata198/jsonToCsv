@@ -36,7 +36,7 @@ if __name__ == '__main__':
             description=summary,
             long_description=long_description,
             license='LGPLv3',
-            keywords=['json', 'csv', 'convert', 'extract', 'parse'],
+            keywords=['json', 'csv', 'convert', 'extract', 'parse', 'rfc4180', 'text/csv', 'jsonToCsv'],
             classifiers=['Development Status :: 3 - Alpha',
                          'Programming Language :: Python',
                          'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',

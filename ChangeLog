@@ -1,6 +1,33 @@
-0.3.0 - ??? ?? ????
+1.0.0 - ??? ?? ????
 - Some various refactoring, reodering and labeling to better denote the public
 vs private methods
+- Supoort comments inline to the format str (useful for multi-line format
+strings to document what each line is doing). Use # to mark the remainder of
+the line as a comment.
+
+- Support the RFC 4180 standard by default (quoting, newlines, commas in csvs
+etc are all now supported)
+
+  This includes: 
+  * Changing default line endings (configurable) to CRLF
+  * introducing the ability to quote field data. 
+
+  By default, the dataToStr and convertToCsv methods will have the quoteFields
+  param set to 'smart'. 
+    This means it will scan the output data for newlines, carriage returns, or
+    the provided separator value.
+      If any of these are found, it will escape quotes to appear correctly in
+      output per RFC 4180 and quote all data. 
+      This will allow, by default, for all characters to be able to be
+      represented in CSV format. 
+      You can also set quoteFields to False or True to explicitly do or do
+      not quote values.
+
+- Some minor optimizations
+- Removed "asList" to convertToCsv
+- Lots of documentation updates/rewrites
+- Rename ParseError to FormatStrParseError. The old name will be kept around
+for a short time for compat reasons, and they can be used interchangably
 
 0.2.1 - Mar 13 2017
 - Fix issue where on multiple line item formats where a pre-line item was defined on an item with multiple iterations

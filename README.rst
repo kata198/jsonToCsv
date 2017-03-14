@@ -1,17 +1,18 @@
 jsonToCsv
 =========
 
-Converts json data to csv
+Converts json data to csv via a meta language (format string)
+
+The output csv is RFC 4180 compliant by default (behaviour can be changed with options).
 
 
-Module
-======
+The Problem
+-----------
 
-The primary public module is json_to_csv.**JsonToCsv**
+The problem with converting json to csv is that json is a dynamic, multi-typed, nested format. Csv on the other hand is a fixed single-type format.
 
-The constructor requires only the format string [formatStr] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
+JsonToCsv solves this by defining a meta language (format string) which can be used to define repeatable and fixed-format steps, allowing the flattening of the wide json domain space into the slim csv space.
 
-You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields [nullValue]
 
 
 Format String
@@ -153,40 +154,84 @@ Multi-Line:
 	Because non-quoted whitespace is ignored, you can use newlines, spaces, and tabs to make long patterns more readable.
 
 
+Tool
+====
+
+Usage: jsonToCsv [format str]
+  Formats a json string ( delivered via stdin ) to csv, based on provided format str.
+
+
+Module PyDoc
+------------
+
+You can access the pydoc here: http://htmlpreview.github.io/?https://github.com/kata198/jsonToCsv/blob/master/doc/index.html
+
+
+Module
+======
+
+The primary public module is json_to_csv.**JsonToCsv**
+
+The constructor requires only the format string [formatStr] ( a string written in a simple specific meta-language used to define the pattern for extraction ).
+
+You may, however, choose to define an alternate value to represent unreachable or defined-as-null fields [nullValue]
+
+
+
+Module Usage Example
+--------------------
+
+See: https://github.com/kata198/jsonToCsv/blob/master/example.py and https://github.com/kata198/jsonToCsv/blob/master/example_mutli.py.
+
+For a basic example of using the module directly for extraction and reformatting into various formats (CSV, TSV, a text table)
+
 
 Extracting Data
 ---------------
 
 Once you've written your formatStr and created the JsonToCsv object, you're ready to start parsing!
 
-**convertToCsv**
-
-The most basic and direct method is the "convertToCsv" function. You can pass in a string (raw data) or a dict (already parsed e.g. by 'json' module ), and you'll be output the csv lines, ready to be passed to the "print" function. 
-
-If you set the optional parameter "asList" to True (default is False), instead of being returned a giant string, you'll get a list where each element represents a line.
-
 
 **extractData**
 
-Likely however, you don't just need to convert it directly to csv if you are working with the module (it is recommended if that is the case, i.e. if you have no extra processing  or analysis or whatever required, that you use the provided "jsonToCsv" function).
+extractData is the "core" method of JsonToCsv. It performs the actual work of taking the json and following the format string to create a series of lines.
+
+The output of this method is a list of lists, the outer list is each line, and each line is a list where each element represents a field.
 
 Some more complicated use-cases where "extractData" is required are:
 
 * Creating alternate formats of output (like TSV or a text table, or plugging into a GUI)
+
 * Analysis of the data, i.e. filtering or modifying
+
 * Joining data from multiple JSON entries (see that section for more info)
+
 * Whatever you need to do
 
-
-*extractData* works the same way as *convertToCsv*, that is you can pass in a string of a json response, or a dict (the already converted object by json module).
-
-
+You can pass the output of this function to the "dataToStr" method to convert it into a printable string.
 
 **dataToStr**
 
-For many of the use-cases where you need to post-process or post-filter the data or whatever, you will eventually want to convert it to a printable string.
+dataToStr provides the means to convert data (from extractData) to a printable string.
 
-This is a function that does just that; you pass in the list-of-lists *extractData* returns, and you get a complete string returned, ready-to-go for the print function.
+The first argument is the list-of-lists that extractData provides
+
+It then has the following optional arguments:
+
+* separator - Defaults to comma, may use tab for TSV, or whatever you want
+
+* lineSeparator - Defaults to CRLF (\r\n) which is the RFC4180 standard, but you may use something else (like \n).
+
+* quoteFields - This you can set to True or False to explicitly quote or not quote data per RFC4180 standards. The default is the string "smart", which means the data will be scanned to see if it needs quoting, and if so, it will quote the data. Otherwise, it will not. Generally you will want to keep this at the default.
+
+
+**convertToCsv**
+
+The most basic and direct method is the "convertToCsv" function. You can pass in a string (raw data) or a dict (already parsed e.g. by 'json' module ), and you'll be output the csv lines, ready to be passed to the "print" function. 
+
+This is the same as calling extractData and passing it to dataToStr, except you can only use comma as a separator through this function.
+
+This function takes the same "lineSeparator" and "quoteFields" arguments described in "dataToStr" above.
 
 
 **findDuplicates**
@@ -220,31 +265,6 @@ So this function will give a "best effort", in the above example, you'd get pers
 
 This matches very eagerly, but you may start to get some invalid data at this point.
 
-
-TODO: write more.
-
-TODO: finish
-
-
-Module PyDoc
-------------
-
-You can access the pydoc here: http://htmlpreview.github.io/?https://github.com/kata198/jsonToCsv/blob/master/doc/index.html
-
-
-Module Usage Example
---------------------
-
-See: https://github.com/kata198/jsonToCsv/blob/master/example.py .
-
-For a basic example of using the module directly for extraction and reformatting into various formats (CSV, TSV, a text table)
-
-
-Tool
-====
-
-Usage: jsonToCsv [format str]
-  Formats a json string ( delivered via stdin ) to csv, based on provided format str.
 
 
 
