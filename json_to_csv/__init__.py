@@ -89,7 +89,6 @@ class JsonToCsv(object):
 
     '''
 
-
     def __init__(self, formatStr, nullValue='', debug=False):
         '''
             __init__ - Create a JsonToCsv object.
@@ -124,6 +123,368 @@ class JsonToCsv(object):
         # Fill the private attributes above
         self.__parsePattern()
 
+
+    ################################################
+    #######         Public Methods           #######
+    ################################################
+
+
+    def extractData(self, data):
+        '''
+            extractData - Return a list of lists. The outer list represents lines, the inner list data points.
+
+                e.x.  returnData[0] is first line,  returnData[0][2] is first line third data point.
+
+                @param data <string/dict> - Either a string of JSON data, or a dict.
+
+                NOTE: This is the recommended method to be used. You can pass the data to
+                  JsonToCsv.dataToStr to convert to csv, tsv, and other formats.
+
+                @return list<list<str>> - List of lines, each line containing a list of datapoints.
+        '''
+        # Get data in right format
+        if not isinstance(data, dict):
+            obj = json.loads(data)
+        else:
+            obj = data
+
+        lineItems = copy.copy(self.lineItems)
+
+        firstLineItem = lineItems.popleft()
+
+        existingFields = [rule(obj) for rule in self.preLineItemRules]
+
+        lines = self._followLineItems(obj, firstLineItem, lineItems, existingFields)
+        if self.postLineItemRules:
+            postFields = [rule(obj) for rule in self.postLineItemRules]
+
+            for line in lines:
+                line += postFields
+
+        return lines
+
+    def convertToCsv(self, data, asList=False):
+        '''
+            convertToCsv - Convert given data to csv.
+
+            @param data <string/dict> - Either a string of json data, or a dict
+            @param asList <bool> Default False - If True, will return a list of the lines (as strings), otherwise will just return a string.
+
+            @return <list/str> - see "asList" param above.
+        '''
+
+        lines = self.extractData(data)
+
+        # Convert each line to a csv string
+        lines = [','.join(line) for line in lines]
+
+        # If asList, we return a list of strings (lines), otherwise, we return a string
+        if asList:
+            return lines
+
+        return '\n'.join(lines)
+
+    ################################################
+    #######      Static Public Methods       #######
+    ################################################
+
+    @staticmethod
+    def dataToStr(csvData, separator=','):
+        '''
+            dataToStr - Convert a list of lists of csv data to a string.
+
+            @param csvData list<list> - A list of lists, first list is lines, inner-list are values.
+            @param separator <str> - Default ',' this is the separator used between fields (i.e. would be a tab in TSV format)
+
+              This is the data returned by JsonToCsv.extractData
+
+            @return str - csv data
+        '''
+        # TODO: Maybe support other formats? We would have to handle converting csv -> list<list> though,
+        #  which is probably outside the scope of this module.
+        if not isinstance(csvData, list) or not isinstance(csvData[0], list):
+            raise ValueError('csvData is not a list-of-lists. dataToStr is meant to convert the return of "extractData" method to csv data.')
+
+        # Each line is the comma-joining (or whatever #separator is) of its values
+        lines = [separator.join(items) for items in csvData]
+
+        return '\n'.join(lines)
+
+    @staticmethod
+    def joinCsv(csvData1, joinFieldNum1, csvData2, joinFieldNum2):
+        '''
+            joinCsv - Join two sets of csv data based on a common field value in the two sets.
+
+              csvData should be a list of list (1st is lines, second is items). Such data is gathered by using JsonToCsv.extractData method
+
+              Combined data will append the fields of csvData2 to csvData1, omitting the common field from csvData2
+
+              @param csvData1 list<list> - The "primary" data set
+
+              @param joinFieldNum1 <int> - The index of the common field in csvData1
+
+              @param csvData2 list<list> - The secondary data set
+
+              @param joinFieldNum2 <int> - The index of the common field in csvData2
+
+              @return tuple( mergedData [list<list>], onlyCsvData1 [list<list>], onlyCsvData2 [list<list>] )
+
+                Return is a tuple of 3 elements. The first is the merged csv data where a join field matched.
+                 The second is the elements only present in csvData1
+                 The third is the elements only present in csvData2
+
+              @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
+              @raises KeyError   - If there are duplicate keys preventing a proper merge
+
+
+              NOTE: each csvData MUST have unique values in the "join field", or it cannot join.
+
+                Maybe try out something new for today, and check out "multiJoinCsv" function. 
+
+                Use multiJoinCsv to link all matches in csvData1 to all matches in csvData2 where join fields match.
+
+                JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
+                  So you can have something like:
+
+                  myCsvData = JsonToCsv.extractData(....)
+                  joinFieldNum = 3  # Example, 4th field is the field we will join on
+
+                  myCsvDataDuplicateLines = JsonToCsv.findDuplicates(myCsvData, joinFieldNum, flat=True)
+                  if myCsvDataDuplicateLines:
+                      myCsvDataUniq = [line for line in myCsvData if line not in myCsvDataDuplicateLines]
+                  else:
+                      myCsvDataUniq = myCsvData
+
+        '''
+
+        # TODO: Maybe support other formats? Probably not.
+        if not isinstance(csvData1, list) or not isinstance(csvData1[0], list):
+            raise ValueError('csvData1 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
+        if not isinstance(csvData2, list) or not isinstance(csvData2[0], list):
+            raise ValueError('csvData2 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
+
+
+        # Map of all csvData1Key : csvData1Value
+        csvData1Map = {}
+
+        # Just the keys for csvData2
+        csvData2Keys = set()
+
+        onlyData1 = []
+        onlyData2 = []
+        combinedData = []
+
+        # Extract the "joinKey" from the csvData1 (left) into csvData1Map
+        for data in csvData1:
+
+            joinFieldData = data[joinFieldNum1]
+            # If duplicate found we cannot continue the join
+            if joinFieldData in csvData1Map:
+                raise KeyError('Duplicate data in joinField %d on csvData1: %s' %(joinFieldNum1, joinFieldData))
+
+            # Copy data (list-by-ref)
+            csvData1Map[joinFieldData] = data[:]
+
+
+        # Extract the "joinKey" from csvData2, and merge if possible
+        for data in csvData2:
+            # Copy data (list-by-ref)
+
+            joinFieldData = data[joinFieldNum2]
+            if joinFieldData in csvData2Keys:
+                raise KeyError('Duplicate data in joinField %d on csvData2: %s' %(joinFieldNum2, joinFieldData))
+            csvData2Keys.add(joinFieldData)
+
+            # If we have a match on left == right, 
+            #   merge the data (omitting the joinField in dataSet2 [right] )
+            if joinFieldData in csvData1Map:
+                newData = data[ :joinFieldNum2] + data[joinFieldNum2 + 1 :]
+                combinedData.append(csvData1Map[joinFieldData] + newData)
+            else:
+                # Otherwise, this data only exists in dataset 2
+                onlyData2.append(data[:])
+
+        # Find what was only in dataset 1
+        onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
+        for key in onlyData1Keys:
+            onlyData1.append(csvData1Map[key])
+
+        # Return results
+        return (combinedData, onlyData1, onlyData2)
+
+    @staticmethod
+    def multiJoinCsv(csvData1, joinFieldNum1, csvData2, joinFieldNum2):
+        '''
+
+            multiJoinCsv - Join two sets of csv data based on a common field value, but this time merge any results, i.e. if key is repeated on A then you'd have:
+
+               AA and AB.
+
+
+              csvData should be a list of list (1st is lines, second is items). Such data is gathered by using JsonToCsv.extractData method
+
+              Combined data will append the fields of csvData2 to csvData1, omitting the common field from csvData2
+
+              @param csvData1 list<list> - The "primary" data set
+
+              @param joinFieldNum1 <int> - The index of the common field in csvData1
+
+              @param csvData2 list<list> - The secondary data set
+
+              @param joinFieldNum2 <int> - The index of the common field in csvData2
+
+              @return tuple( mergedData [list<list>], onlyCsvData1 [list<list>], onlyCsvData2 [list<list>] )
+
+                Return is a tuple of 3 elements. The first is the merged csv data where a join field matched.
+                 The second is the elements only present in csvData1
+                 The third is the elements only present in csvData2
+
+              @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
+
+        '''
+
+        # TODO: Maybe support other formats? Probably not.
+        if not isinstance(csvData1, list) or not isinstance(csvData1[0], list):
+            raise ValueError('csvData1 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
+        if not isinstance(csvData2, list) or not isinstance(csvData2[0], list):
+            raise ValueError('csvData2 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
+
+
+        # Map of all csvData1Key : csvData1Value
+        csvData1Map = defaultdict(list)
+        csvData2Map = defaultdict(list)
+
+        # Just the keys for csvData2
+        csvData2Keys = set()
+
+        onlyData1 = []
+        onlyData2 = []
+        combinedData = []
+
+        # Extract the "joinKey" from the csvData1 (left) into csvData1Map
+        for data in csvData1:
+
+            joinFieldData = data[joinFieldNum1]
+
+            # Copy data (list-by-ref)
+            csvData1Map[joinFieldData].append(data[:])
+
+
+        # Extract the "joinKey" from csvData2, and merge if possible
+        for data in csvData2:
+            # Copy data (list-by-ref)
+            data = data[:]
+
+            joinFieldData = data[joinFieldNum2]
+
+            csvData2Map[joinFieldData].append(data)
+
+            # If we have a match on left == right, 
+            #   merge the data (omitting the joinField in dataSet2 [right] )
+            if joinFieldData not in csvData1Map:
+                # Otherwise, this data only exists in dataset 2
+                onlyData2.append(data)
+
+        commonKeys = set(csvData1Map.keys()).intersection(set(csvData2Map.keys()))
+
+        for key in commonKeys:
+            csvDataRows1 = csvData1Map[key]
+
+            for row1 in csvDataRows1:
+                row1 = row1[:]
+                for row2 in csvData2Map[key]:
+                    row2 = row2[:]
+
+                    newData = row2[ :joinFieldNum2] + row2[joinFieldNum2 + 1 :]
+
+                    combinedData.append(row1 + newData)
+                    
+
+        csvData2Keys = list(csvData2Map.keys())
+
+        # Find what was only in dataset 1
+        onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
+        for key in onlyData1Keys:
+            onlyData1 += csvData1Map[key]
+
+        # Return results
+        return (combinedData, onlyData1, onlyData2)
+
+    @staticmethod
+    def findDuplicates(csvData, fieldNum, flat=False):
+        '''
+            findDuplicates - Find lines with duplicate values in a specific field number.
+
+                This is useful to strip duplicates before using JsonToCsv.joinCsv
+                  which requires unique values in the join field.
+
+                  @see JsonToCsv.joinCsv for example code
+
+
+                @param csvData list<list<str>> - List of lines, each line containing string field values.
+
+                    JsonToCsv.extractData returns data in this form.
+
+                @param fieldNum int - Index of the field number in which to search for duplicates
+
+                @param flat bool Default False - If False, return is a map of { "duplicateKey" : lines(copy) }.
+                                                 If True, return is a flat list of all duplicate lines
+
+                @return :
+
+                 When #flat is False:
+
+                    dict { duplicateKeyValue[str] : lines[list<list<str>>] (copy) } -
+
+                      This dict has the values with duplicates as the key, and a COPY of the lines as each value.
+
+                 When #flat is True
+
+                   lines[list<list<str>>] (copy)
+
+                      Copies of all lines with duplicate value in #fieldNum. Duplicates will be adjacent
+        '''
+
+        # Gather the line indexes corrosponding to each key (joinField)
+        #   This way, we only copy what we need, and at the end.
+        keyToLineIdxs = defaultdict(list)
+
+        for i in range(len(csvData)):
+            line = csvData[i]
+
+            fieldValue = line[fieldNum]
+
+            keyToLineIdxs[fieldValue].append(i)
+
+        if flat is False:
+            # Assemble each key : lines(copy)
+            #  for each key with more than 1 lines in its values
+            ret = {}
+
+            for key, indexes in keyToLineIdxs.items():
+                if len(indexes) <= 1:
+                    continue
+
+                ret[key] = [csvData[idx][:] for idx in indexes]
+
+        else:
+
+            # Create a flat list of the values in keyToLineIdxs
+            #   from each list of values (lines) containing more than 1 item (lines)
+
+            ret = []
+
+            for key, indexes in keyToLineIdxs.items():
+                if len(indexes) <= 1:
+                    continue
+
+                ret += [csvData[idx][:] for idx in indexes]
+
+        return ret
+
+    ################################################
+    #######         Private Methods          #######
+    ################################################
 
     def __parsePattern(self):
         '''
@@ -436,353 +797,5 @@ class JsonToCsv(object):
 
         return lines
         
-
-    def convertToCsv(self, data, asList=False):
-        '''
-            convertToCsv - Convert given data to csv.
-
-            @param data <string/dict> - Either a string of json data, or a dict
-            @param asList <bool> Default False - If True, will return a list of the lines (as strings), otherwise will just return a string.
-
-            @return <list/str> - see "asList" param above.
-        '''
-
-        lines = self.extractData(data)
-
-        # Convert each line to a csv string
-        lines = [','.join(line) for line in lines]
-
-        # If asList, we return a list of strings (lines), otherwise, we return a string
-        if asList:
-            return lines
-
-        return '\n'.join(lines)
-
-
-    def extractData(self, data):
-        '''
-            extractData - Return a list of lists. The outer list represents lines, the inner list data points.
-
-                e.x.  returnData[0] is first line,  returnData[0][2] is first line third data point.
-
-                @param data <string/dict> - Either a string of JSON data, or a dict.
-
-                @return list<list<str>> - List of lines, each line containing a list of datapoints.
-        '''
-        # Get data in right format
-        if not isinstance(data, dict):
-            obj = json.loads(data)
-        else:
-            obj = data
-
-        lineItems = copy.copy(self.lineItems)
-
-        firstLineItem = lineItems.popleft()
-
-        existingFields = [rule(obj) for rule in self.preLineItemRules]
-
-        lines = self._followLineItems(obj, firstLineItem, lineItems, existingFields)
-        if self.postLineItemRules:
-            postFields = [rule(obj) for rule in self.postLineItemRules]
-
-            for line in lines:
-                line += postFields
-
-        return lines
-
-    @staticmethod
-    def dataToStr(csvData, separator=','):
-        '''
-            dataToStr - Convert a list of lists of csv data to a string.
-
-            @param csvData list<list> - A list of lists, first list is lines, inner-list are values.
-            @param separator <str> - Default ',' this is the separator used between fields (i.e. would be a tab in TSV format)
-
-              This is the data returned by JsonToCsv.extractData
-
-            @return str - csv data
-        '''
-        # TODO: Maybe support other formats? We would have to handle converting csv -> list<list> though,
-        #  which is probably outside the scope of this module.
-        if not isinstance(csvData, list) or not isinstance(csvData[0], list):
-            raise ValueError('csvData is not a list-of-lists. dataToStr is meant to convert the return of "extractData" method to csv data.')
-
-        # Each line is the comma-joining (or whatever #separator is) of its values
-        lines = [separator.join(items) for items in csvData]
-
-        return '\n'.join(lines)
-
-    @staticmethod
-    def joinCsv(csvData1, joinFieldNum1, csvData2, joinFieldNum2):
-        '''
-            joinCsv - Join two sets of csv data based on a common field value in the two sets.
-
-              csvData should be a list of list (1st is lines, second is items). Such data is gathered by using JsonToCsv.extractData method
-
-              Combined data will append the fields of csvData2 to csvData1, omitting the common field from csvData2
-
-              @param csvData1 list<list> - The "primary" data set
-
-              @param joinFieldNum1 <int> - The index of the common field in csvData1
-
-              @param csvData2 list<list> - The secondary data set
-
-              @param joinFieldNum2 <int> - The index of the common field in csvData2
-
-              @return tuple( mergedData [list<list>], onlyCsvData1 [list<list>], onlyCsvData2 [list<list>] )
-
-                Return is a tuple of 3 elements. The first is the merged csv data where a join field matched.
-                 The second is the elements only present in csvData1
-                 The third is the elements only present in csvData2
-
-              @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
-              @raises KeyError   - If there are duplicate keys preventing a proper merge
-
-
-              NOTE: each csvData MUST have unique values in the "join field", or it cannot join.
-
-                Maybe try out something new for today, and check out "multiJoinCsv" function. 
-
-                Use multiJoinCsv to link all matches in csvData1 to all matches in csvData2 where join fields match.
-
-                JsonToCsv.findDuplicates will identify duplicate values for a given joinfield.
-                  So you can have something like:
-
-                  myCsvData = JsonToCsv.extractData(....)
-                  joinFieldNum = 3  # Example, 4th field is the field we will join on
-
-                  myCsvDataDuplicateLines = JsonToCsv.findDuplicates(myCsvData, joinFieldNum, flat=True)
-                  if myCsvDataDuplicateLines:
-                      myCsvDataUniq = [line for line in myCsvData if line not in myCsvDataDuplicateLines]
-                  else:
-                      myCsvDataUniq = myCsvData
-
-        '''
-
-        # TODO: Maybe support other formats? Probably not.
-        if not isinstance(csvData1, list) or not isinstance(csvData1[0], list):
-            raise ValueError('csvData1 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
-        if not isinstance(csvData2, list) or not isinstance(csvData2[0], list):
-            raise ValueError('csvData2 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
-
-
-        # Map of all csvData1Key : csvData1Value
-        csvData1Map = {}
-
-        # Just the keys for csvData2
-        csvData2Keys = set()
-
-        onlyData1 = []
-        onlyData2 = []
-        combinedData = []
-
-        # Extract the "joinKey" from the csvData1 (left) into csvData1Map
-        for data in csvData1:
-
-            joinFieldData = data[joinFieldNum1]
-            # If duplicate found we cannot continue the join
-            if joinFieldData in csvData1Map:
-                raise KeyError('Duplicate data in joinField %d on csvData1: %s' %(joinFieldNum1, joinFieldData))
-
-            # Copy data (list-by-ref)
-            csvData1Map[joinFieldData] = data[:]
-
-
-        # Extract the "joinKey" from csvData2, and merge if possible
-        for data in csvData2:
-            # Copy data (list-by-ref)
-
-            joinFieldData = data[joinFieldNum2]
-            if joinFieldData in csvData2Keys:
-                raise KeyError('Duplicate data in joinField %d on csvData2: %s' %(joinFieldNum2, joinFieldData))
-            csvData2Keys.add(joinFieldData)
-
-            # If we have a match on left == right, 
-            #   merge the data (omitting the joinField in dataSet2 [right] )
-            if joinFieldData in csvData1Map:
-                newData = data[ :joinFieldNum2] + data[joinFieldNum2 + 1 :]
-                combinedData.append(csvData1Map[joinFieldData] + newData)
-            else:
-                # Otherwise, this data only exists in dataset 2
-                onlyData2.append(data[:])
-
-        # Find what was only in dataset 1
-        onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
-        for key in onlyData1Keys:
-            onlyData1.append(csvData1Map[key])
-
-        # Return results
-        return (combinedData, onlyData1, onlyData2)
-
-    @staticmethod
-    def multiJoinCsv(csvData1, joinFieldNum1, csvData2, joinFieldNum2):
-        '''
-
-            multiJoinCsv - Join two sets of csv data based on a common field value, but this time merge any results, i.e. if key is repeated on A then you'd have:
-
-               AA and AB.
-
-
-              csvData should be a list of list (1st is lines, second is items). Such data is gathered by using JsonToCsv.extractData method
-
-              Combined data will append the fields of csvData2 to csvData1, omitting the common field from csvData2
-
-              @param csvData1 list<list> - The "primary" data set
-
-              @param joinFieldNum1 <int> - The index of the common field in csvData1
-
-              @param csvData2 list<list> - The secondary data set
-
-              @param joinFieldNum2 <int> - The index of the common field in csvData2
-
-              @return tuple( mergedData [list<list>], onlyCsvData1 [list<list>], onlyCsvData2 [list<list>] )
-
-                Return is a tuple of 3 elements. The first is the merged csv data where a join field matched.
-                 The second is the elements only present in csvData1
-                 The third is the elements only present in csvData2
-
-              @raises ValueError - If csvData1 or csvData2 are not in the right format (list of lists)
-
-        '''
-
-        # TODO: Maybe support other formats? Probably not.
-        if not isinstance(csvData1, list) or not isinstance(csvData1[0], list):
-            raise ValueError('csvData1 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
-        if not isinstance(csvData2, list) or not isinstance(csvData2[0], list):
-            raise ValueError('csvData2 is not a list of lists, as expected. Use extractData to gather lists of lists for this method.')
-
-
-        # Map of all csvData1Key : csvData1Value
-        csvData1Map = defaultdict(list)
-        csvData2Map = defaultdict(list)
-
-        # Just the keys for csvData2
-        csvData2Keys = set()
-
-        onlyData1 = []
-        onlyData2 = []
-        combinedData = []
-
-        # Extract the "joinKey" from the csvData1 (left) into csvData1Map
-        for data in csvData1:
-
-            joinFieldData = data[joinFieldNum1]
-
-            # Copy data (list-by-ref)
-            csvData1Map[joinFieldData].append(data[:])
-
-
-        # Extract the "joinKey" from csvData2, and merge if possible
-        for data in csvData2:
-            # Copy data (list-by-ref)
-            data = data[:]
-
-            joinFieldData = data[joinFieldNum2]
-
-            csvData2Map[joinFieldData].append(data)
-
-            # If we have a match on left == right, 
-            #   merge the data (omitting the joinField in dataSet2 [right] )
-            if joinFieldData not in csvData1Map:
-                # Otherwise, this data only exists in dataset 2
-                onlyData2.append(data)
-
-        commonKeys = set(csvData1Map.keys()).intersection(set(csvData2Map.keys()))
-
-        for key in commonKeys:
-            csvDataRows1 = csvData1Map[key]
-
-            for row1 in csvDataRows1:
-                row1 = row1[:]
-                for row2 in csvData2Map[key]:
-                    row2 = row2[:]
-
-                    newData = row2[ :joinFieldNum2] + row2[joinFieldNum2 + 1 :]
-
-                    combinedData.append(row1 + newData)
-                    
-
-        csvData2Keys = list(csvData2Map.keys())
-
-        # Find what was only in dataset 1
-        onlyData1Keys = set(csvData1Map.keys()).difference(csvData2Keys)
-        for key in onlyData1Keys:
-            onlyData1 += csvData1Map[key]
-
-        # Return results
-        return (combinedData, onlyData1, onlyData2)
-
-    @staticmethod
-    def findDuplicates(csvData, fieldNum, flat=False):
-        '''
-            findDuplicates - Find lines with duplicate values in a specific field number.
-
-                This is useful to strip duplicates before using JsonToCsv.joinCsv
-                  which requires unique values in the join field.
-
-                  @see JsonToCsv.joinCsv for example code
-
-
-                @param csvData list<list<str>> - List of lines, each line containing string field values.
-
-                    JsonToCsv.extractData returns data in this form.
-
-                @param fieldNum int - Index of the field number in which to search for duplicates
-
-                @param flat bool Default False - If False, return is a map of { "duplicateKey" : lines(copy) }.
-                                                 If True, return is a flat list of all duplicate lines
-
-                @return :
-
-                 When #flat is False:
-
-                    dict { duplicateKeyValue[str] : lines[list<list<str>>] (copy) } -
-
-                      This dict has the values with duplicates as the key, and a COPY of the lines as each value.
-
-                 When #flat is True
-
-                   lines[list<list<str>>] (copy)
-
-                      Copies of all lines with duplicate value in #fieldNum. Duplicates will be adjacent
-        '''
-
-        # Gather the line indexes corrosponding to each key (joinField)
-        #   This way, we only copy what we need, and at the end.
-        keyToLineIdxs = defaultdict(list)
-
-        for i in range(len(csvData)):
-            line = csvData[i]
-
-            fieldValue = line[fieldNum]
-
-            keyToLineIdxs[fieldValue].append(i)
-
-        if flat is False:
-            # Assemble each key : lines(copy)
-            #  for each key with more than 1 lines in its values
-            ret = {}
-
-            for key, indexes in keyToLineIdxs.items():
-                if len(indexes) <= 1:
-                    continue
-
-                ret[key] = [csvData[idx][:] for idx in indexes]
-
-        else:
-
-            # Create a flat list of the values in keyToLineIdxs
-            #   from each list of values (lines) containing more than 1 item (lines)
-
-            ret = []
-
-            for key, indexes in keyToLineIdxs.items():
-                if len(indexes) <= 1:
-                    continue
-
-                ret += [csvData[idx][:] for idx in indexes]
-
-        return ret
-
 
 
