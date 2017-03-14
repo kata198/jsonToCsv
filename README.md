@@ -57,7 +57,9 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 
 	  one line of output per each innermost line item found.
 
-	You may not close a line item and then try to open another one.
+	You may not close a line item and then try to open another at a different level.
+
+    If you have no line items defined (like a single record), one csv line will be produced.
 
 
 	Examples:
