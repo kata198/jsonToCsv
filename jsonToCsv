@@ -26,6 +26,9 @@ def printUsage():
 
       --version                 Print the version
 
+Example:
+
+   cat myFile.json | jsonToCsv '+"Results"["name", "org"]'
 
 ''')
     
