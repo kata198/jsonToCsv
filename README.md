@@ -167,6 +167,10 @@ This module ships with a script, jsonToCsv, which can be used standalone to perf
 
 			--null-value=XXX          Use "XXX" instead of an empty string as the null value
 
+			--quote-fields=X          Defaults to "Smart quoting", i.e. fields will be quoted
+										according to RFC 4180 as-needed. You can specify "true" or "false"
+										here explicitly to force a behaviour
+
 			--help                    Show this message
 			--format-help             Show usage on format string representation
 
