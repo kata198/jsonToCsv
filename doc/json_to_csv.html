@@ -6,7 +6,7 @@
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
 <tr bgcolor="#7799ee">
 <td valign=bottom>&nbsp;<br>
-<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>json_to_csv</strong></big></big> (version 0.3.0)</font></td
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>json_to_csv</strong></big></big> (version 1.0.0)</font></td
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href="json_to_csv.html">index</a></font></td></tr></table>
     <p><tt>Copyright&nbsp;(c)&nbsp;2017&nbsp;Timothy&nbsp;Savannah&nbsp;All&nbsp;Rights&nbsp;Reserved<br>
@@ -15,12 +15,9 @@ Licensed&nbsp;under&nbsp;terms&nbsp;of&nbsp;LGPLv3.<br>
 &nbsp;<br>
 json_to_csv&nbsp;-&nbsp;Module&nbsp;for&nbsp;converting&nbsp;json&nbsp;data&nbsp;to&nbsp;csv&nbsp;data,&nbsp;and&nbsp;various&nbsp;supplementry&nbsp;methods.<br>
 &nbsp;<br>
-0.1:<br>
+Resulting&nbsp;csv&nbsp;will&nbsp;confirm&nbsp;to&nbsp;<a href="http://www.rfc-editor.org/rfc/rfc4180.txt">RFC&nbsp;4180</a>&nbsp;"Common&nbsp;format&nbsp;for&nbsp;MIME&nbsp;Type&nbsp;for&nbsp;Comma-Separated&nbsp;Values&nbsp;(CSV)&nbsp;Files<br>
 &nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;TODO:&nbsp;Does&nbsp;not&nbsp;handle&nbsp;double-quote&nbsp;embedded&nbsp;in&nbsp;data<br>
-&nbsp;&nbsp;&nbsp;&nbsp;TODO:&nbsp;Does&nbsp;not&nbsp;handle&nbsp;commas&nbsp;embedded&nbsp;in&nbsp;data<br>
-&nbsp;<br>
-0.2:</tt></p>
+May&nbsp;also&nbsp;be&nbsp;used&nbsp;to&nbsp;just&nbsp;extract&nbsp;data&nbsp;into&nbsp;lists.</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
@@ -120,7 +117,9 @@ Data descriptors inherited from <a href="builtins.html#BaseException">builtins.B
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt><a href="#JsonToCsv">JsonToCsv</a>&nbsp;-&nbsp;Public&nbsp;class&nbsp;containing&nbsp;methods&nbsp;for&nbsp;dealing&nbsp;with&nbsp;converting<br>
-&nbsp;&nbsp;&nbsp;&nbsp;Json&nbsp;to&nbsp;csv&nbsp;data,&nbsp;merging&nbsp;data,&nbsp;etc<br>&nbsp;</tt></td></tr>
+&nbsp;&nbsp;&nbsp;&nbsp;Json&nbsp;to&nbsp;csv&nbsp;data,&nbsp;merging&nbsp;data,&nbsp;etc.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Designed&nbsp;to&nbsp;produce&nbsp;<a href="http://www.rfc-editor.org/rfc/rfc4180.txt">RFC&nbsp;4180</a>&nbsp;csv&nbsp;output&nbsp;from&nbsp;json&nbsp;data&nbsp;using&nbsp;a&nbsp;meta&nbsp;language.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
 <dl><dt><a name="JsonToCsv-__init__"><strong>__init__</strong></a>(self, formatStr, nullValue='', debug=False)</dt><dd><tt>__init__&nbsp;-&nbsp;Create&nbsp;a&nbsp;<a href="#JsonToCsv">JsonToCsv</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
@@ -131,12 +130,30 @@ Data descriptors inherited from <a href="builtins.html#BaseException">builtins.B
 &nbsp;<br>
 @param&nbsp;debug&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;output&nbsp;some&nbsp;debug&nbsp;data&nbsp;on&nbsp;stderr.</tt></dd></dl>
 
-<dl><dt><a name="JsonToCsv-convertToCsv"><strong>convertToCsv</strong></a>(self, data, asList=False)</dt><dd><tt>convertToCsv&nbsp;-&nbsp;Convert&nbsp;given&nbsp;data&nbsp;to&nbsp;csv.<br>
+<dl><dt><a name="JsonToCsv-convertToCsv"><strong>convertToCsv</strong></a>(self, data, quoteFields='smart', lineSeparator='\r\n')</dt><dd><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;convertToCsv&nbsp;-&nbsp;Convert&nbsp;given&nbsp;data&nbsp;to&nbsp;csv.<br>
 &nbsp;<br>
-@param&nbsp;data&nbsp;&lt;string/dict&gt;&nbsp;-&nbsp;Either&nbsp;a&nbsp;string&nbsp;of&nbsp;json&nbsp;data,&nbsp;or&nbsp;a&nbsp;dict<br>
-@param&nbsp;asList&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;return&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;lines&nbsp;(as&nbsp;strings),&nbsp;otherwise&nbsp;will&nbsp;just&nbsp;return&nbsp;a&nbsp;string.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Alias&nbsp;to&nbsp;calling:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;extractData<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;then&nbsp;passing&nbsp;those&nbsp;results&nbsp;to:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dataToStr<br>
 &nbsp;<br>
-@return&nbsp;&lt;list/str&gt;&nbsp;-&nbsp;see&nbsp;"asList"&nbsp;param&nbsp;above.</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;data&nbsp;&lt;string/dict&gt;&nbsp;-&nbsp;Either&nbsp;a&nbsp;string&nbsp;of&nbsp;json&nbsp;data,&nbsp;or&nbsp;a&nbsp;dict<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;quoteFields&nbsp;&lt;bool&nbsp;or&nbsp;'smart'&gt;&nbsp;Default&nbsp;'smart'&nbsp;-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;False,&nbsp;fields&nbsp;will&nbsp;not&nbsp;be&nbsp;quoted&nbsp;(thus&nbsp;a&nbsp;comma&nbsp;or&nbsp;newline,&nbsp;etc&nbsp;will&nbsp;break&nbsp;the&nbsp;output,&nbsp;but&nbsp;it&nbsp;looks&nbsp;neater&nbsp;on&nbsp;screen)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;True,&nbsp;fields&nbsp;will&nbsp;always&nbsp;be&nbsp;quoted&nbsp;(protecting&nbsp;against&nbsp;commas,&nbsp;allows&nbsp;values&nbsp;to&nbsp;contain&nbsp;newlines,&nbsp;etc)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;'smart'&nbsp;(default),&nbsp;the&nbsp;need&nbsp;to&nbsp;quote&nbsp;fields&nbsp;will&nbsp;be&nbsp;auto-determined.&nbsp;This&nbsp;may&nbsp;take&nbsp;slighly&nbsp;longer&nbsp;on&nbsp;HUGE&nbsp;datasets,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but&nbsp;is&nbsp;generally&nbsp;okay.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;lineSeparator&nbsp;&lt;str&gt;&nbsp;-&nbsp;This&nbsp;will&nbsp;separate&nbsp;the&nbsp;lines.&nbsp;<a href="http://www.rfc-editor.org/rfc/rfc4180.txt">RFC4180</a>&nbsp;defines&nbsp;CRLF&nbsp;as&nbsp;the&nbsp;preferred&nbsp;ending,&nbsp;but&nbsp;implementations<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;can&nbsp;vary&nbsp;(i.e.&nbsp;unix&nbsp;generally&nbsp;just&nbsp;uses&nbsp;'<br>
+').&nbsp;If&nbsp;you&nbsp;plan&nbsp;to&nbsp;have&nbsp;newlines&nbsp;('<br>
+')&nbsp;in&nbsp;the&nbsp;data,&nbsp;I&nbsp;suggest&nbsp;using&nbsp;'<br>
+'&nbsp;as<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;lineSeparator&nbsp;as&nbsp;otherwise&nbsp;many&nbsp;implementations&nbsp;(like&nbsp;python's&nbsp;own&nbsp;csv&nbsp;module)&nbsp;will&nbsp;swallow&nbsp;the&nbsp;newline&nbsp;within&nbsp;the&nbsp;data.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@return&nbsp;&lt;list/str&gt;&nbsp;-&nbsp;see&nbsp;"asList"&nbsp;param&nbsp;above.</tt></dd></dl>
 
 <dl><dt><a name="JsonToCsv-extractData"><strong>extractData</strong></a>(self, data)</dt><dd><tt>extractData&nbsp;-&nbsp;Return&nbsp;a&nbsp;list&nbsp;of&nbsp;lists.&nbsp;The&nbsp;outer&nbsp;list&nbsp;represents&nbsp;lines,&nbsp;the&nbsp;inner&nbsp;list&nbsp;data&nbsp;points.<br>
 &nbsp;<br>
@@ -151,14 +168,31 @@ Data descriptors inherited from <a href="builtins.html#BaseException">builtins.B
 
 <hr>
 Static methods defined here:<br>
-<dl><dt><a name="JsonToCsv-dataToStr"><strong>dataToStr</strong></a>(csvData, separator=',')</dt><dd><tt>dataToStr&nbsp;-&nbsp;Convert&nbsp;a&nbsp;list&nbsp;of&nbsp;lists&nbsp;of&nbsp;csv&nbsp;data&nbsp;to&nbsp;a&nbsp;string.<br>
+<dl><dt><a name="JsonToCsv-dataToStr"><strong>dataToStr</strong></a>(csvData, separator=',', quoteFields='smart', lineSeparator='\r\n')</dt><dd><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dataToStr&nbsp;-&nbsp;Convert&nbsp;a&nbsp;list&nbsp;of&nbsp;lists&nbsp;of&nbsp;csv&nbsp;data&nbsp;to&nbsp;a&nbsp;string.<br>
 &nbsp;<br>
-@param&nbsp;csvData&nbsp;list&lt;list&gt;&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;lists,&nbsp;first&nbsp;list&nbsp;is&nbsp;lines,&nbsp;inner-list&nbsp;are&nbsp;values.<br>
-@param&nbsp;separator&nbsp;&lt;str&gt;&nbsp;-&nbsp;Default&nbsp;','&nbsp;this&nbsp;is&nbsp;the&nbsp;separator&nbsp;used&nbsp;between&nbsp;fields&nbsp;(i.e.&nbsp;would&nbsp;be&nbsp;a&nbsp;tab&nbsp;in&nbsp;TSV&nbsp;format)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;csvData&nbsp;list&lt;list&gt;&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;lists,&nbsp;first&nbsp;list&nbsp;is&nbsp;lines,&nbsp;inner-list&nbsp;are&nbsp;values.<br>
 &nbsp;<br>
-&nbsp;&nbsp;This&nbsp;is&nbsp;the&nbsp;data&nbsp;returned&nbsp;by&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.extractData<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;is&nbsp;the&nbsp;data&nbsp;returned&nbsp;by&nbsp;<a href="#JsonToCsv">JsonToCsv</a>.extractData<br>
 &nbsp;<br>
-@return&nbsp;str&nbsp;-&nbsp;csv&nbsp;data</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;separator&nbsp;&lt;str&gt;&nbsp;-&nbsp;Default&nbsp;','&nbsp;this&nbsp;is&nbsp;the&nbsp;separator&nbsp;used&nbsp;between&nbsp;fields&nbsp;(i.e.&nbsp;would&nbsp;be&nbsp;a&nbsp;tab&nbsp;in&nbsp;TSV&nbsp;format)<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;quoteFields&nbsp;&lt;bool&nbsp;or&nbsp;'smart'&gt;&nbsp;Default&nbsp;'smart'&nbsp;-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;False,&nbsp;fields&nbsp;will&nbsp;not&nbsp;be&nbsp;quoted&nbsp;(thus&nbsp;a&nbsp;comma&nbsp;or&nbsp;newline,&nbsp;etc&nbsp;will&nbsp;break&nbsp;the&nbsp;output,&nbsp;but&nbsp;it&nbsp;looks&nbsp;neater&nbsp;on&nbsp;screen)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;True,&nbsp;fields&nbsp;will&nbsp;always&nbsp;be&nbsp;quoted&nbsp;(protecting&nbsp;against&nbsp;commas,&nbsp;allows&nbsp;values&nbsp;to&nbsp;contain&nbsp;newlines,&nbsp;etc)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;'smart'&nbsp;(default),&nbsp;the&nbsp;need&nbsp;to&nbsp;quote&nbsp;fields&nbsp;will&nbsp;be&nbsp;auto-determined.&nbsp;This&nbsp;may&nbsp;take&nbsp;slighly&nbsp;longer&nbsp;on&nbsp;HUGE&nbsp;datasets,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but&nbsp;is&nbsp;generally&nbsp;okay.&nbsp;Quotes&nbsp;within&nbsp;a&nbsp;field&nbsp;(")&nbsp;will&nbsp;be&nbsp;replaced&nbsp;with&nbsp;two&nbsp;adjacent&nbsp;quotes&nbsp;("")&nbsp;as&nbsp;per&nbsp;<a href="http://www.rfc-editor.org/rfc/rfc4180.txt">RFC4180</a><br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use&nbsp;'smart'&nbsp;unless&nbsp;you&nbsp;REALLY&nbsp;need&nbsp;to&nbsp;specify&nbsp;otherwise,&nbsp;as&nbsp;'smart'&nbsp;will&nbsp;always&nbsp;produce&nbsp;<a href="http://www.rfc-editor.org/rfc/rfc4180.txt">RFC4180</a>&nbsp;csv&nbsp;files<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;lineSeparator&nbsp;&lt;str&gt;&nbsp;-&nbsp;This&nbsp;will&nbsp;separate&nbsp;the&nbsp;lines.&nbsp;<a href="http://www.rfc-editor.org/rfc/rfc4180.txt">RFC4180</a>&nbsp;defines&nbsp;CRLF&nbsp;as&nbsp;the&nbsp;preferred&nbsp;ending,&nbsp;but&nbsp;implementations<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;can&nbsp;vary&nbsp;(i.e.&nbsp;unix&nbsp;generally&nbsp;just&nbsp;uses&nbsp;'<br>
+').&nbsp;If&nbsp;you&nbsp;plan&nbsp;to&nbsp;have&nbsp;newlines&nbsp;('<br>
+')&nbsp;in&nbsp;the&nbsp;data,&nbsp;I&nbsp;suggest&nbsp;using&nbsp;'<br>
+'&nbsp;as<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;lineSeparator&nbsp;as&nbsp;otherwise&nbsp;many&nbsp;implementations&nbsp;(like&nbsp;python's&nbsp;own&nbsp;csv&nbsp;module)&nbsp;will&nbsp;swallow&nbsp;the&nbsp;newline&nbsp;within&nbsp;the&nbsp;data.<br>
+&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@return&nbsp;str&nbsp;-&nbsp;csv&nbsp;data</tt></dd></dl>
 
 <dl><dt><a name="JsonToCsv-findDuplicates"><strong>findDuplicates</strong></a>(csvData, fieldNum, flat=False)</dt><dd><tt>findDuplicates&nbsp;-&nbsp;Find&nbsp;lines&nbsp;with&nbsp;duplicate&nbsp;values&nbsp;in&nbsp;a&nbsp;specific&nbsp;field&nbsp;number.<br>
 &nbsp;<br>
@@ -274,5 +308,5 @@ Data descriptors defined here:<br>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><strong>__all__</strong> = ('FormatStrParseError', 'JsonToCsv')<br>
-<strong>__version_tuple__</strong> = (0, 3, 0)</td></tr></table>
+<strong>__version_tuple__</strong> = (1, 0, 0)</td></tr></table>
 </body></html>
