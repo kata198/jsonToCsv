@@ -637,10 +637,9 @@ class JsonToCsv(object):
 
                 continue
             elif formatStr[0] in WHITESPACE_CHARS:
-
                 # Jump to the next non-whitespace character. This allows the patterns to be written
                 #  multi-line or otherwise spaced-out and readable.
-                formatStr = re.sub(WHITESPACE_CHAR_PATTERN, '', formatStr)
+                formatStr = WHITESPACE_CLEAR_RE.sub('', formatStr)
 
                 continue
             else:
@@ -803,4 +802,7 @@ OPER_CHARS = (',', '.', '[', ']', '/', '+')
 WHITESPACE_CHARS = (' ', ',', '\n', '\r', '\t')
 
 # Pattern used to strip all whitespace starting at current position to next non-whitespace
-WHITESPACE_CHAR_PATTERN = '^[%s]+' %(''.join(['\\' + whitespaceChar for whitespaceChar in WHITESPACE_CHARS]), )
+WHITESPACE_CLEAR_RE = re.compile('^[%s]+' %(''.join(['\\' + whitespaceChar for whitespaceChar in WHITESPACE_CHARS]), ))
+
+
+# vim: set ts=4 sw=4 st=4 expandtab :
