@@ -80,32 +80,33 @@ PARSE_STR = '''
 ################# VERBOSE EXPLANATION OF FORMAT STR: ###########################
 ########################                         ###############################
 
-# ."results"[               # First, ascend into a map (dict) [ . operator ] under keyname, "results"
-#       +"instances"[       # "+" defines the "line item". At this point we start iterating for each element of the "instances" list.
-#            "hostname",    # A plain key-name defines a key to print at current level. So, we will print "hostname" directly inside "instances"
-#            "ip"           # Next, we will print "ip"
-#            /"attributes"["name"="status"      # We will descend into a list-of-maps named "attributes" [ / operator ],
-#                                               #   searching for where the key "name" equals "status".
-#                                               # On the first map found that satisfies that condition, 
-#                                               #   we will continue starting in that map until the bracket close "]"
-#               "value"     # Print the value of the key "value" at current level
-#            ],             # We return to the previous level (back to the current item in the "instances" array)
-#            ."puppet_data"[        # Descend into a map at current level [ . operator ] under the key "puppet_data"
-#               "hostgroup"         # Print the value of the key "hostgroup"
-#            ],             # Return to previous level ( current item in "instances" array)
-#            /"attributes"["name"="domain"      # Descend into list-of-maps [ / operator ] under key "attributes",
-#                                               # and stop where the key "name" has a value of "domain"
-#               "value"     # Print the value of the "value" key at current level
-#            ],             # Return to previous level ( current item in "instances" array )
-#            /"attributes"["name"="owner"       # Descend into list-of-maps [ / operator ] under key "attributes",
-#                                               # and stop where the key "name" has a value of "owner"
-#               "value"     # Print the value of the "value" key at current level
-#            ]              # Go back to previous level ( current item in "instances" array )
-#        ]                  # Since this closes the line item, we repeat the loop starting back at the open square bracket after
-#                           #   +"instances", i.e. we continue to the next item and line.
-#                           # Once all items in the "instances" array have been iterated over, we will go up to parent level (the "results" map at root level)
-#  ]                        # We close the final item, and we are done!
-
+PARSE_STR = '''
+ ."results"[               # First, ascend into a map (dict) [ . operator ] under keyname, "results"
+       +"instances"[       # "+" defines the "line item". At this point we start iterating for each element of the "instances" list.
+            "hostname",    # A plain key-name defines a key to print at current level. So, we will print "hostname" directly inside "instances"
+            "ip",           # Next, we will print "ip"
+            /"attributes"["name"="status"      # We will descend into a list-of-maps named "attributes" [ / operator ],
+                                               #   searching for where the key "name" equals "status".
+                                               # On the first map found that satisfies that condition, 
+                                               #   we will continue starting in that map until the bracket close "]"
+               "value"     # Print the value of the key "value" at current level
+            ],             # We return to the previous level (back to the current item in the "instances" array)
+            ."puppet_data"[        # Descend into a map at current level [ . operator ] under the key "puppet_data"
+               "hostgroup"         # Print the value of the key "hostgroup"
+            ],             # Return to previous level ( current item in "instances" array)
+            /"attributes"["name"="domain"      # Descend into list-of-maps [ / operator ] under key "attributes",
+                                               # and stop where the key "name" has a value of "domain"
+               "value"     # Print the value of the "value" key at current level
+            ],             # Return to previous level ( current item in "instances" array )
+            /"attributes"["name"="owner"       # Descend into list-of-maps [ / operator ] under key "attributes",
+                                               # and stop where the key "name" has a value of "owner"
+               "value"     # Print the value of the "value" key at current level
+            ]              # Go back to previous level ( current item in "instances" array )
+        ]                  # Since this closes the line item, we repeat the loop starting back at the open square bracket after
+                           #   +"instances", i.e. we continue to the next item and line.
+                           # Once all items in the "instances" array have been iterated over, we will go up to parent level (the "results" map at root level)
+  ]                        # We close the final item, and we are done!
+'''
 
 
 # IS_DEBUG = Set to True or pass --debug on cli to output some extra info

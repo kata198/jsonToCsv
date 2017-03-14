@@ -24,8 +24,11 @@ CSV_HEADERS = "Date,PreItem,Hostname,IpAddr,Status,PuppetHostGroup,Domain,Owner,
 # This is the "parse str" using the json_to_csv meta-language for accurate extraction ( see README or from json_to_csv.help import FORMAT_HELP )
 #   explained verbosely in comments following:
 PARSE_STR = '''
-        "date",
-        +"results"[
+        "date",     +"results"[
+                 
+
+        
+                  
           "myBeforeKey",
             +"instances"[
                 "hostname",
@@ -51,34 +54,36 @@ PARSE_STR = '''
 ################# VERBOSE EXPLANATION OF FORMAT STR: ###########################
 ########################                         ###############################
 
-#PARSE_STR = '''
-#        "date",             # First element of every line will be the value of
-#                            #  "date" at the top level
-#        +"results"[         # Iterate over each member of the list under "results"
-#          "myBeforeKey",    # Include "myBeforeKey" as the next item in every line
-#            +"instances"[   # Iterate over each member of the list under "instances"
-#                "hostname", # Include "hostname" under "instances" in each line
-#                "ip"        # Next key to add is "ip"
-#                /"attributes"["name"="status"  # Descend into a list-of-maps under "attributes" and look
-#                                               #  for where the key "name" has the value "status"
-#                    "value"                    # In the matched-map, print the value of the key "value"
-#                ],                             # Leave this matched map, return to one level up
-#                ."puppet_data"[                # Descend into map found at "puppet_data" key
-#                    "hostgroup"                # Print the "hostgroup" key at this level
-#                ],                             # Return to previous level
-#                /"attributes"["name"="domain"  # Descend into a list-of-maps under "attributes" and look
-#                                               #  for where the key "name" has the value "domain"
-#                    "value"                    # Print the "value" key in this matched map
-#                ],                             # Go back up to previous level
-#                /"attributes"["name"="owner"   # Descend into a list-of-maps at "attributes" and look
-#                                               #  for where the key "name" has the value "owner"
-#                    "value"                    # Print the key "value" at this level
-#                ]                              # Go back to previous level
-#            ]                                  # Go back to previous level
-#            "myAfterKey"                       # Append to all previous lines the value of key "myAfterKey"
-#        ],                                     # Go back up a level
-#        "name",                                # Append to all previous lines the value of key "name"
+PARSE_STR = '''
+        "date",             # First element of every line will be the value of
 
+
+                            #  "date" at the top level
+        +"results"[         # Iterate over each member of the list under "results"
+          "myBeforeKey",    # Include "myBeforeKey" as the next item in every line
+            +"instances"[   # Iterate over each member of the list under "instances"
+                "hostname", # Include "hostname" under "instances" in each line
+                "ip"        # Next key to add is "ip"
+                /"attributes"["name"="status"  # Descend into a list-of-maps under "attributes" and look
+                                               #  for where the key "name" has the value "status"
+                    "value"                    # In the matched-map, print the value of the key "value"
+                ],                             # Leave this matched map, return to one level up
+                ."puppet_data"[                # Descend into map found at "puppet_data" key
+                    "hostgroup"                # Print the "hostgroup" key at this level
+                ],                             # Return to previous level
+                /"attributes"["name"="domain"  # Descend into a list-of-maps under "attributes" and look
+                                               #  for where the key "name" has the value "domain"
+                    "value"                    # Print the "value" key in this matched map
+                ],                             # Go back up to previous level
+                /"attributes"["name"="owner"   # Descend into a list-of-maps at "attributes" and look
+                                               #  for where the key "name" has the value "owner"
+                    "value"                    # Print the key "value" at this level
+                ]                              # Go back to previous level
+            ]                                  # Go back to previous level
+            "myAfterKey"                       # Append to all previous lines the value of key "myAfterKey"
+        ],                                     # Go back up a level
+        "name"                                # Append to all previous lines the value of key "name"
+'''
 
 
 # IS_DEBUG = Set to True or pass --debug on cli to output some extra info

@@ -135,6 +135,17 @@ Because csv is a fixed-format field and json is free-format, a meta language had
 	Spaces and newlines are generally ignored, and can be used to make things look nice.
 
 
+**Comments:**
+
+	You can comment directly in the format string by using the hash [ '#' ] character.
+
+	Everything following the hash character to the end-of-line will be ignored.
+
+	This is useful in conjunction with mulit-line patterns to document what each line is doing.
+
+	See the "Example with inline comments" section for an example of both.
+
+
 Commas:
 
 	Commas should be used to separate items on the same level, so after a quoted-key for printing,
@@ -281,4 +292,42 @@ We return to the previous level
 (we are done iterating at this point)
 
 We return to the previous level
+
+
+**Example with inline comments:**
+
+
+The following is the meant to parse the following json: https://github.com/kata198/jsonToCsv/blob/master/example_multi.json
+
+
+	PARSE_STR = '''
+			"date",             # First element of every line will be the value of
+
+
+								#  "date" at the top level
+			+"results"[         # Iterate over each member of the list under "results"
+			  "myBeforeKey",    # Include "myBeforeKey" as the next item in every line
+				+"instances"[   # Iterate over each member of the list under "instances"
+					"hostname", # Include "hostname" under "instances" in each line
+					"ip"        # Next key to add is "ip"
+					/"attributes"["name"="status"  # Descend into a list-of-maps under "attributes" and look
+												   #  for where the key "name" has the value "status"
+						"value"                    # In the matched-map, print the value of the key "value"
+					],                             # Leave this matched map, return to one level up
+					."puppet_data"[                # Descend into map found at "puppet_data" key
+						"hostgroup"                # Print the "hostgroup" key at this level
+					],                             # Return to previous level
+					/"attributes"["name"="domain"  # Descend into a list-of-maps under "attributes" and look
+												   #  for where the key "name" has the value "domain"
+						"value"                    # Print the "value" key in this matched map
+					],                             # Go back up to previous level
+					/"attributes"["name"="owner"   # Descend into a list-of-maps at "attributes" and look
+												   #  for where the key "name" has the value "owner"
+						"value"                    # Print the key "value" at this level
+					]                              # Go back to previous level
+				]                                  # Go back to previous level
+				"myAfterKey"                       # Append to all previous lines the value of key "myAfterKey"
+			],                                     # Go back up a level
+			"name"                                # Append to all previous lines the value of key "name"
+	'''
 
