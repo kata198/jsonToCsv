@@ -1,9 +1,11 @@
-1.0.0 - ??? ?? ????
+1.0.0 - 
 - Some various refactoring, reodering and labeling to better denote the public
 vs private methods
 - Supoort comments inline to the format str (useful for multi-line format
 strings to document what each line is doing). Use # to mark the remainder of
 the line as a comment.
+- Add support for having no line items defined (like parsing a single record
+into a single csv line)
 
 - Support the RFC 4180 standard by default (quoting, newlines, commas in csvs
 etc are all now supported)
