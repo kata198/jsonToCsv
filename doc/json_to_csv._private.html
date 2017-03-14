@@ -1,0 +1,365 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module json_to_csv._private</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="json_to_csv.html"><font color="#ffffff">json_to_csv</font></a>._private</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href="json_to_csv.html">index</a></font></td></tr></table>
+    <p><tt>Copyright&nbsp;(c)&nbsp;2017&nbsp;Timothy&nbsp;Savannah&nbsp;All&nbsp;Rights&nbsp;Reserved<br>
+&nbsp;<br>
+Licensed&nbsp;under&nbsp;terms&nbsp;of&nbsp;LGPLv3.<br>
+&nbsp;<br>
+Private&nbsp;items&nbsp;used&nbsp;in&nbsp;the&nbsp;implementation&nbsp;of&nbsp;public&nbsp;JsonToCsv&nbsp;class</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="copy.html">copy</a><br>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+</td><td width="25%" valign=top><a href="traceback.html">traceback</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="json_to_csv._private.html#WalkNullException">WalkNullException</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="json_to_csv._private.html#Level">Level</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="json_to_csv._private.html#Level_ListMap">Level_ListMap</a>
+</font></dt><dt><font face="helvetica, arial"><a href="json_to_csv._private.html#Level_Map">Level_Map</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="json_to_csv._private.html#Rule">Rule</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Level">class <strong>Level</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Level">Level</a>&nbsp;-&nbsp;Base&nbsp;class&nbsp;of&nbsp;any&nbsp;level-walk&nbsp;operations.<br>
+&nbsp;<br>
+Does&nbsp;not&nbsp;itself&nbsp;hold&nbsp;implement&nbsp;of&nbsp;walk&nbsp;method.<br>
+&nbsp;<br>
+For&nbsp;the&nbsp;subclasses,&nbsp;calling&nbsp;obj.<a href="#Level-walk">walk</a>(level)&nbsp;will&nbsp;perform&nbsp;the&nbsp;walk&nbsp;from&nbsp;level&nbsp;-&gt;&nbsp;newLevel,&nbsp;and&nbsp;return&nbsp;newLevel&nbsp;if&nbsp;found.<br>
+&nbsp;<br>
+&nbsp;&nbsp;If&nbsp;newLevel&nbsp;could&nbsp;not&nbsp;be&nbsp;reached,&nbsp;<a href="#WalkNullException">WalkNullException</a>&nbsp;will&nbsp;be&nbsp;raised&nbsp;with&nbsp;a&nbsp;message&nbsp;(.msg)&nbsp;defined&nbsp;to&nbsp;be&nbsp;the&nbsp;reason&nbsp;why&nbsp;(for&nbsp;debug&nbsp;purposes)<br>
+&nbsp;<br>
+Private<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Level-__init__"><strong>__init__</strong></a>(self, levelKey)</dt><dd><tt>__init__&nbsp;-&nbsp;Create&nbsp;a&nbsp;<a href="#Level">Level</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+&nbsp;<br>
+@param&nbsp;levelKey&nbsp;&lt;str&gt;&nbsp;-&nbsp;The&nbsp;key&nbsp;at&nbsp;which&nbsp;we&nbsp;will&nbsp;descend&nbsp;into&nbsp;to&nbsp;get&nbsp;to&nbsp;the&nbsp;next&nbsp;level</tt></dd></dl>
+
+<dl><dt><a name="Level-__repr__"><strong>__repr__</strong></a> = <a href="#Level-__str__">__str__</a>(self)</dt></dl>
+
+<dl><dt><a name="Level-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="Level-walk"><strong>walk</strong></a>(self, curLevel)</dt><dd><tt>walk&nbsp;-&nbsp;Walk&nbsp;from&nbsp;the&nbsp;current&nbsp;level&nbsp;(#curLevel)&nbsp;and&nbsp;return&nbsp;the&nbsp;level&nbsp;reached.<br>
+&nbsp;<br>
+@param&nbsp;curLevel&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;starting&nbsp;level<br>
+&nbsp;<br>
+@return&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;landing&nbsp;level<br>
+&nbsp;<br>
+@raises&nbsp;<a href="#WalkNullException">WalkNullException</a>&nbsp;-&nbsp;If&nbsp;the&nbsp;walk&nbsp;could&nbsp;not&nbsp;be&nbsp;completed</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>levelKey</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>levelType</strong> = 'undefined'</dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Level_ListMap">class <strong>Level_ListMap</strong></a>(<a href="json_to_csv._private.html#Level">Level</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>&nbsp;<a href="#Level_ListMap">Level_ListMap</a>&nbsp;-&nbsp;A&nbsp;<a href="#Level">Level</a>&nbsp;that&nbsp;searches&nbsp;a&nbsp;list&nbsp;of&nbsp;maps&nbsp;for&nbsp;a&nbsp;specific&nbsp;key&nbsp;:&nbsp;value<br>
+&nbsp;<br>
+&nbsp;Like:<br>
+&nbsp;<br>
+"MyKey"&nbsp;:&nbsp;[{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name"&nbsp;:&nbsp;"Something",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value"&nbsp;:&nbsp;"x"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name"&nbsp;:&nbsp;"Blah",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value"&nbsp;:&nbsp;"y"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+]<br>
+&nbsp;<br>
+&nbsp;If&nbsp;we&nbsp;wanted&nbsp;to&nbsp;descend&nbsp;into&nbsp;the&nbsp;one&nbsp;with&nbsp;name&nbsp;equal&nbsp;to&nbsp;"Something",&nbsp;we&nbsp;would&nbsp;have:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ListMap("MyKey",&nbsp;"name",&nbsp;"Something")<br>
+&nbsp;<br>
+&nbsp;or&nbsp;in&nbsp;the&nbsp;format&nbsp;language,&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;/"MyKey"["name"="Something"<br>
+&nbsp;<br>
+&nbsp;@see&nbsp;<a href="#Level">Level</a><br>
+&nbsp;<br>
+&nbsp;Private<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="json_to_csv._private.html#Level_ListMap">Level_ListMap</a></dd>
+<dd><a href="json_to_csv._private.html#Level">Level</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Level_ListMap-__init__"><strong>__init__</strong></a>(self, levelKey, matchKey, matchValue)</dt><dd><tt>__init__&nbsp;-&nbsp;Create&nbsp;a&nbsp;<a href="#Level_ListMap">Level_ListMap</a>&nbsp;<a href="builtins.html#object">object</a><br>
+&nbsp;<br>
+@param&nbsp;levelKey&nbsp;&lt;str&gt;&nbsp;-&nbsp;The&nbsp;key&nbsp;with&nbsp;which&nbsp;to&nbsp;find&nbsp;this&nbsp;list-of-maps<br>
+&nbsp;<br>
+@param&nbsp;matchKey&nbsp;&lt;str&gt;&nbsp;-&nbsp;The&nbsp;key&nbsp;we&nbsp;will&nbsp;check&nbsp;against&nbsp;in&nbsp;each&nbsp;map<br>
+&nbsp;<br>
+@param&nbsp;matchValue&lt;str&gt;&nbsp;-&nbsp;The&nbsp;value&nbsp;we&nbsp;are&nbsp;looking&nbsp;for&nbsp;in&nbsp;#matchKey&nbsp;to&nbsp;select&nbsp;that&nbsp;map</tt></dd></dl>
+
+<dl><dt><a name="Level_ListMap-walk"><strong>walk</strong></a>(self, curLevel)</dt><dd><tt>walk&nbsp;-&nbsp;Walk&nbsp;from&nbsp;the&nbsp;current&nbsp;level&nbsp;(#curLevel)&nbsp;to&nbsp;the&nbsp;next&nbsp;level&nbsp;and&nbsp;return&nbsp;that&nbsp;next&nbsp;level<br>
+&nbsp;<br>
+@param&nbsp;curLevel&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;current&nbsp;level<br>
+&nbsp;<br>
+@return&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;level&nbsp;reached<br>
+&nbsp;<br>
+@throws&nbsp;<a href="#WalkNullException">WalkNullException</a>&nbsp;if:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;1.&nbsp;#curLevel&nbsp;does&nbsp;not&nbsp;contain&nbsp;a&nbsp;key&nbsp;matching&nbsp;#levelKey<br>
+&nbsp;&nbsp;&nbsp;2.&nbsp;The&nbsp;result&nbsp;of&nbsp;#curLevel[#levelKey]&nbsp;is&nbsp;not&nbsp;a&nbsp;list&nbsp;or&nbsp;contains&nbsp;items&nbsp;other&nbsp;than&nbsp;maps<br>
+&nbsp;&nbsp;&nbsp;3.&nbsp;No&nbsp;match&nbsp;found</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>levelKey</strong></dt>
+</dl>
+<dl><dt><strong>matchKey</strong></dt>
+</dl>
+<dl><dt><strong>matchValue</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>levelType</strong> = 'list_map'</dl>
+
+<hr>
+Methods inherited from <a href="json_to_csv._private.html#Level">Level</a>:<br>
+<dl><dt><a name="Level_ListMap-__repr__"><strong>__repr__</strong></a> = __str__(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="Level_ListMap-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Level_Map">class <strong>Level_Map</strong></a>(<a href="json_to_csv._private.html#Level">Level</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Level_Map">Level_Map</a>&nbsp;-&nbsp;A&nbsp;type&nbsp;of&nbsp;<a href="#Level">Level</a>&nbsp;access&nbsp;which&nbsp;simply&nbsp;accesses&nbsp;a&nbsp;key&nbsp;on&nbsp;a&nbsp;map.<br>
+&nbsp;<br>
+@see&nbsp;<a href="#Level">Level</a><br>
+&nbsp;<br>
+Private<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="json_to_csv._private.html#Level_Map">Level_Map</a></dd>
+<dd><a href="json_to_csv._private.html#Level">Level</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Level_Map-__init__"><strong>__init__</strong></a>(self, levelKey)</dt><dd><tt>__init__&nbsp;-&nbsp;Create&nbsp;a&nbsp;<a href="#Level_Map">Level_Map</a>&nbsp;<a href="builtins.html#object">object</a><br>
+&nbsp;<br>
+@param&nbsp;levelKey&nbsp;&lt;str&gt;&nbsp;-&nbsp;The&nbsp;string&nbsp;on&nbsp;which&nbsp;to&nbsp;access</tt></dd></dl>
+
+<dl><dt><a name="Level_Map-walk"><strong>walk</strong></a>(self, curLevel)</dt><dd><tt>walk&nbsp;-&nbsp;Walk&nbsp;from&nbsp;the&nbsp;current&nbsp;level&nbsp;accessing&nbsp;a&nbsp;key,&nbsp;and&nbsp;return&nbsp;that&nbsp;as&nbsp;the&nbsp;next&nbsp;level<br>
+&nbsp;<br>
+@see&nbsp;<a href="#Level">Level</a>.walk<br>
+&nbsp;<br>
+@param&nbsp;curLevel&nbsp;&lt;dict&gt;&nbsp;-&nbsp;Current&nbsp;level<br>
+&nbsp;<br>
+@return&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;landing&nbsp;level<br>
+&nbsp;<br>
+@raises&nbsp;<a href="#WalkNullException">WalkNullException</a>&nbsp;-&nbsp;If&nbsp;the&nbsp;key&nbsp;does&nbsp;not&nbsp;exist,&nbsp;or&nbsp;does&nbsp;not&nbsp;point&nbsp;to&nbsp;a&nbsp;map</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>levelKey</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>levelType</strong> = 'map'</dl>
+
+<hr>
+Methods inherited from <a href="json_to_csv._private.html#Level">Level</a>:<br>
+<dl><dt><a name="Level_Map-__repr__"><strong>__repr__</strong></a> = __str__(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="Level_Map-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Rule">class <strong>Rule</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Rule">Rule</a>&nbsp;-&nbsp;Private&nbsp;<a href="builtins.html#object">object</a>&nbsp;used&nbsp;to&nbsp;walk&nbsp;the&nbsp;tree.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Rule-__call__"><strong>__call__</strong></a>(self, obj)</dt><dd><tt>__call__&nbsp;-&nbsp;Called&nbsp;when&nbsp;this&nbsp;<a href="builtins.html#object">object</a>&nbsp;is&nbsp;called.&nbsp;i.e.&nbsp;x&nbsp;=&nbsp;<a href="#Rule">Rule</a>(...)&nbsp;&nbsp;&nbsp;x(myObj)&nbsp;&lt;---&nbsp;called&nbsp;here<br>
+&nbsp;<br>
+&nbsp;<br>
+@param&nbsp;obj&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;upper-most&nbsp;<a href="builtins.html#object">object</a><br>
+&nbsp;<br>
+@return&nbsp;&lt;str&nbsp;/&nbsp;type(self.<strong>nullValue</strong>)&nbsp;&gt;&nbsp;-&nbsp;Will&nbsp;transverse&nbsp;the&nbsp;levels&nbsp;and&nbsp;print&nbsp;the&nbsp;key&nbsp;associated&nbsp;with<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;this&nbsp;rule.&nbsp;@see&nbsp;<a href="#Rule">Rule</a>.__init__&nbsp;for&nbsp;more&nbsp;info.&nbsp;If&nbsp;it&nbsp;could&nbsp;not&nbsp;complete&nbsp;the&nbsp;walk&nbsp;or&nbsp;did&nbsp;not&nbsp;find&nbsp;the&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;final&nbsp;key,&nbsp;or&nbsp;the&nbsp;final&nbsp;key&nbsp;has&nbsp;a&nbsp;value&nbsp;of&nbsp;'null',&nbsp;will&nbsp;return&nbsp;self.<strong>nullValue</strong>&nbsp;(as&nbsp;passed&nbsp;in&nbsp;__init__,&nbsp;default&nbsp;empty&nbsp;string).</tt></dd></dl>
+
+<dl><dt><a name="Rule-__init__"><strong>__init__</strong></a>(self, levels, keyName, nullValue='', debug=False)</dt><dd><tt>__init__&nbsp;-&nbsp;Construct&nbsp;a&nbsp;<a href="#Rule">Rule</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+&nbsp;<br>
+This&nbsp;<a href="builtins.html#object">object</a>&nbsp;should&nbsp;be&nbsp;called&nbsp;and&nbsp;passed&nbsp;an&nbsp;<a href="builtins.html#object">object</a>&nbsp;to&nbsp;transverse&nbsp;and&nbsp;return&nbsp;the&nbsp;key&nbsp;found.<br>
+&nbsp;<br>
+@param&nbsp;levels&nbsp;-&nbsp;list&lt;&nbsp;<a href="#Level">Level</a>&nbsp;&gt;&nbsp;List&nbsp;of&nbsp;objects&nbsp;of&nbsp;a&nbsp;subclass&nbsp;to&nbsp;"<a href="#Level">Level</a>"<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Level">Level</a>&nbsp;types&nbsp;and&nbsp;Data:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;'map'&nbsp;-&nbsp;A&nbsp;map&nbsp;access.&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;'list_map'&nbsp;-&nbsp;Access&nbsp;a&nbsp;list&nbsp;of&nbsp;maps,&nbsp;searching&nbsp;for&nbsp;a&nbsp;key=value&nbsp;pair.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.<br>
+@param&nbsp;keyName&nbsp;-&nbsp;The&nbsp;key&nbsp;to&nbsp;print&nbsp;after&nbsp;transversing&nbsp;levels<br>
+&nbsp;<br>
+@param&nbsp;nullValue&nbsp;-&nbsp;The&nbsp;value&nbsp;to&nbsp;return&nbsp;to&nbsp;represent&nbsp;null<br>
+&nbsp;<br>
+@param&nbsp;debug&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;print&nbsp;some&nbsp;info&nbsp;to&nbsp;stderr.</tt></dd></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="Rule-descendLevels"><strong>descendLevels</strong></a>(obj, levels, debug=False, doneLevels=None)</dt><dd><tt>descendLevels&nbsp;-&nbsp;Takes&nbsp;an&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;descends&nbsp;a&nbsp;series&nbsp;of&nbsp;levels,&nbsp;returning&nbsp;the&nbsp;final&nbsp;<a href="builtins.html#object">object</a>&nbsp;reached.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;"Walk"&nbsp;from&nbsp;#obj&nbsp;down&nbsp;#levels&nbsp;and&nbsp;return&nbsp;the&nbsp;resulting&nbsp;<a href="builtins.html#object">object</a>.<br>
+&nbsp;<br>
+@param&nbsp;obj&nbsp;&lt;dict&gt;&nbsp;-&nbsp;The&nbsp;starting&nbsp;<a href="builtins.html#object">object</a><br>
+&nbsp;<br>
+@param&nbsp;levels&nbsp;&lt;list&lt;tuple&gt;&gt;&nbsp;-&nbsp;Levels&nbsp;to&nbsp;transverse.&nbsp;@see&nbsp;<a href="#Rule">Rule</a>.__init__&nbsp;for&nbsp;more&nbsp;info<br>
+&nbsp;<br>
+@param&nbsp;debug&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;print&nbsp;some&nbsp;info&nbsp;to&nbsp;stderr<br>
+&nbsp;<br>
+@param&nbsp;doneLevels&nbsp;&lt;None/list&gt;&nbsp;Default&nbsp;None,&nbsp;if&nbsp;you&nbsp;provide&nbsp;a&nbsp;list,&nbsp;it&nbsp;will&nbsp;contain&nbsp;all&nbsp;the&nbsp;levels&nbsp;transversed&nbsp;before&nbsp;stopping.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;you&nbsp;get&nbsp;a&nbsp;return&nbsp;of&nbsp;'None'&nbsp;(can't&nbsp;transverse&nbsp;all&nbsp;levels),&nbsp;this&nbsp;will&nbsp;show&nbsp;you&nbsp;where&nbsp;it&nbsp;stopped.<br>
+&nbsp;<br>
+@return&nbsp;&lt;dict/None&gt;&nbsp;-&nbsp;If&nbsp;could&nbsp;transverse&nbsp;successfully,&nbsp;will&nbsp;return&nbsp;the&nbsp;<a href="builtins.html#object">object</a>&nbsp;reached.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;it&nbsp;could&nbsp;not,&nbsp;will&nbsp;return&nbsp;None.&nbsp;@see&nbsp;doneLevels</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="WalkNullException">class <strong>WalkNullException</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#WalkNullException">WalkNullException</a>&nbsp;-&nbsp;Raised&nbsp;when&nbsp;a&nbsp;<a href="#Level">Level</a>&nbsp;cannot&nbsp;walk&nbsp;down&nbsp;(reality&nbsp;doesn't&nbsp;match&nbsp;expected&nbsp;format).<br>
+&nbsp;<br>
+contains&nbsp;'msg'&nbsp;attribute&nbsp;which&nbsp;contains&nbsp;the&nbsp;message<br>
+&nbsp;<br>
+Private<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="json_to_csv._private.html#WalkNullException">WalkNullException</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="WalkNullException-__init__"><strong>__init__</strong></a>(self, msg='')</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
+<dl><dt><a name="WalkNullException-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><a name="WalkNullException-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="WalkNullException-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="WalkNullException-__reduce__"><strong>__reduce__</strong></a>(...)</dt><dd><tt>helper&nbsp;for&nbsp;pickle</tt></dd></dl>
+
+<dl><dt><a name="WalkNullException-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="WalkNullException-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
+
+<dl><dt><a name="WalkNullException-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="WalkNullException-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="WalkNullException-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#WalkNullException-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
+set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><strong>__cause__</strong></dt>
+<dd><tt>exception&nbsp;cause</tt></dd>
+</dl>
+<dl><dt><strong>__context__</strong></dt>
+<dd><tt>exception&nbsp;context</tt></dd>
+</dl>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__suppress_context__</strong></dt>
+</dl>
+<dl><dt><strong>__traceback__</strong></dt>
+</dl>
+<dl><dt><strong>args</strong></dt>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>__all__</strong> = ('Rule', 'Level', 'Level_Map', 'Level_ListMap', 'WalkNullException')</td></tr></table>
+</body></html>

@@ -1,3 +1,7 @@
+0.3.0 - ??? ?? ????
+- Some various refactoring, reodering and labeling to better denote the public
+vs private methods
+
 0.2.1 - Mar 13 2017
 - Fix issue where on multiple line item formats where a pre-line item was defined on an item with multiple iterations
 
