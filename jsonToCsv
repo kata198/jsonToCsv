@@ -8,7 +8,7 @@
 import os
 import sys
 
-from json_to_csv import JsonToCsv, ParseError
+from json_to_csv import JsonToCsv, FormatStrParseError
 
 from json_to_csv.help import FORMAT_HELP
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # Try to parse format string
     try:
         parser = JsonToCsv(parseStr, nullValue=nullValue, debug=isDebug)
-    except ParseError as pe:
+    except FormatStrParseError as pe:
         # Got a readable error, print it.
         sys.stderr.write('Error in format str: %s\n' %(str(pe),))
         sys.exit(1)
@@ -74,6 +74,6 @@ if __name__ == '__main__':
     # Parse that data, and print the csv string
     try:
         print ( parser.convertToCsv(contents) )
-    except ParseError as pe:
+    except FormatStrParseError as pe:
         sys.stderr.write('Error in parsing: %s\n' %(str(pe),))
         sys.exit(1)

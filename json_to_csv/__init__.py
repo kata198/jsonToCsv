@@ -31,56 +31,10 @@ __version_tuple__ = (0, 2, 1)
 
 
 # Public items
-__all__ = ('ParseError', 'JsonToCsv', )
+__all__ = ('FormatStrParseError', 'JsonToCsv', )
 
 
-class ParseError(Exception):
-    '''
-        ParseError - Raised if there is an error in parsing the format string.
 
-        TODO: Better name.
-    '''
-    pass
-
-
-# itemPattern: The regular expression to match a quoted name.
-itemPattern = re.compile('^["](?P<key_name>[^"][^"]*)["]')
-
-
-def _getNextQuotedKey(formatStr):
-    '''
-        _getNextQuotedKey - Private method which will extract the next quoted key from the formatStr,
-          and return the remainder of the formatStr.
-
-        @param formatStr <str> - The current formatStr where the next item is expected to be
-
-        @raises ParserError - If the next item in the formatStr is not a quoted key, with a message set
-          explaining further.
-
-        @return tuple( itemName<str>, newPattern<str> ) - The item extracted, and the rest of the formatStr after item.
-    '''
-    if formatStr[0] != '"':
-        raise ParseError('Missing expected quote character at: %s' %(formatStr,))
-
-    matchObj = itemPattern.match(formatStr)
-    if not matchObj:
-        raise ParseError("Can't find end of quoted key name (missing end-quote? Key is not [a-zA-Z0-9_][^\"]*? %s" %(formatStr,))
-
-    itemName = matchObj.groupdict()['key_name']
-
-    # Return itemName and remainder of key after matched portion
-    return (itemName, formatStr[matchObj.span()[1]:])
-
-
-# These are characters with a defined operation
-OPER_CHARS = (',', '.', '[', ']', '/', '+')
-
-# These are whitespace characters. When encountered on their own
-#  (i.e. not part of parsing an operation) they are stripped.
-WHITESPACE_CHARS = (' ', ',', '\n', '\r', '\t')
-
-# Pattern used to strip all whitespace starting at current position to next non-whitespace
-WHITESPACE_CHAR_PATTERN = '^[%s]+' %(''.join(['\\' + whitespaceChar for whitespaceChar in WHITESPACE_CHARS]), )
 
 class JsonToCsv(object):
     '''
@@ -528,9 +482,9 @@ class JsonToCsv(object):
 
                 # Ensure we don't end and that we have an open bracket
                 if not formatStr:
-                    raise ParseError('Unexpected end after descend into map: "%s"' %(itemName,))
+                    raise FormatStrParseError('Unexpected end after descend into map: "%s"' %(itemName,))
                 if formatStr[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after descend into map: "%s". Got: %s.' %(itemName, formatStr[0]))
+                    raise FormatStrParseError('Expected square bracket, "[" , after descend into map: "%s". Got: %s.' %(itemName, formatStr[0]))
 
                 # Strip bracket
                 formatStr = formatStr[1:]
@@ -544,9 +498,9 @@ class JsonToCsv(object):
 
                 # Ensure we don't end and that we have an open bracket
                 if not formatStr:
-                    raise ParseError('Unexpected end after descend into list-of-maps: "%s"' %(itemName,))
+                    raise FormatStrParseError('Unexpected end after descend into list-of-maps: "%s"' %(itemName,))
                 if formatStr[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after descend into list-of-maps: "%s". Got: %s.' %(itemName, formatStr[0]))
+                    raise FormatStrParseError('Expected square bracket, "[" , after descend into list-of-maps: "%s". Got: %s.' %(itemName, formatStr[0]))
 
                 # Strip bracket
                 formatStr = formatStr[1:]
@@ -555,18 +509,18 @@ class JsonToCsv(object):
                 try:
                     (matchKey, formatStrNew) = _getNextQuotedKey(formatStr)
                     if not formatStrNew or formatStrNew[0] != '=':
-                        raise ParseError('Expected = for "key"="value" following descend into list-of-maps "%s" at: %s' %(itemName, formatStr))
+                        raise FormatStrParseError('Expected = for "key"="value" following descend into list-of-maps "%s" at: %s' %(itemName, formatStr))
                     
                     formatStr = formatStrNew
 
                     (matchValue, formatStr) = _getNextQuotedKey(formatStr[1:])
 
 
-                except ParseError as pe:
+                except FormatStrParseError as pe:
                     # Has a meaningful message, just raise
                     raise pe
                 except Exception as e:
-                    raise ParseError('Unknown exception parsing list-of-maps "%s" ( %s: %s ) at: %s' %(itemName, e.__class__.__name__, str(e), formatStr))
+                    raise FormatStrParseError('Unknown exception parsing list-of-maps "%s" ( %s: %s ) at: %s' %(itemName, e.__class__.__name__, str(e), formatStr))
 
 
                 newLevel = Level_ListMap(itemName, matchKey, matchValue)
@@ -583,7 +537,7 @@ class JsonToCsv(object):
 
                 if closedALineItem is True:
                     # Tried to open a new line item after closing another one!
-                    raise ParseError('Tried to start a new line item, "%s" outside of an already closed line item. At: %s' %(itemName, formatStr) )
+                    raise FormatStrParseError('Tried to start a new line item, "%s" outside of an already closed line item. At: %s' %(itemName, formatStr) )
 
                 formatStr = formatStrNew
 
@@ -625,7 +579,7 @@ class JsonToCsv(object):
 
                 # Ensure we have bracket next
                 if formatStr[0] != '[':
-                    raise ParseError('Expected square bracket, "[" , after defining line item "%s". Got: %s.' %(lineItemKey, formatStr[0]))
+                    raise FormatStrParseError('Expected square bracket, "[" , after defining line item "%s". Got: %s.' %(lineItemKey, formatStr[0]))
 
                 # Strip bracket
                 formatStr = formatStr[1:]
@@ -657,7 +611,7 @@ class JsonToCsv(object):
                 elif len(currentLevels) > 0:
                     currentLevels.pop()
                 else:
-                    raise ParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
+                    raise FormatStrParseError('Found closing square bracket, "]" , but no open items! At: %s' %(formatStr,))
 
                 # Continue on, and if optional comma, strip that too.
                 formatStr = formatStr[1:]
@@ -690,7 +644,8 @@ class JsonToCsv(object):
 
                 continue
             else:
-                sys.stderr.write('Unhandled character: %s\n' %(formatStr[0], ))
+                raise FormatStrParseError('Unhandled character: %s at: %s\n' %(formatStr[0], formatStr ))
+                
 
 
         # Done formatStr-parsing loop.
@@ -703,7 +658,7 @@ class JsonToCsv(object):
         errorStr = 'Error: Finished parsing formatStr pattern, '
 
         if not lineItems:
-            raise ParseError(errorStr + 'No line items defined. Nothing over which to iterate.')
+            raise FormatStrParseError(errorStr + 'No line items defined. Nothing over which to iterate.')
 
         if currentLevels:
             errorStr += 'There are still %d open items on the current level ("%s" is closest key that is still open)' %(len(currentLevels), currentLevels[-1].levelKey)
@@ -712,10 +667,10 @@ class JsonToCsv(object):
 
             errorStr += PLEASE_CLOSE_STR
 
-            raise ParseError(errorStr)
+            raise FormatStrParseError(errorStr)
 
         if openLineItems:
-            raise ParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem['lineItem'].lineItemKey for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
+            raise FormatStrParseError(errorStr + 'The following line items are still open: %s.%s' %(', '.join([openLineItem['lineItem'].lineItemKey for openLineItem in openLineItems]), PLEASE_CLOSE_STR))
 
 
         # Set calculated items on current object
@@ -799,3 +754,53 @@ class JsonToCsv(object):
         
 
 
+# itemPattern: The regular expression to match a quoted name.
+itemPattern = re.compile('^["](?P<key_name>[^"][^"]*)["]')
+
+
+def _getNextQuotedKey(formatStr):
+    '''
+        _getNextQuotedKey - Private method which will extract the next quoted key from the formatStr,
+          and return the remainder of the formatStr.
+
+        @param formatStr <str> - The current formatStr where the next item is expected to be
+
+        @raises ParserError - If the next item in the formatStr is not a quoted key, with a message set
+          explaining further.
+
+        @return tuple( itemName<str>, newPattern<str> ) - The item extracted, and the rest of the formatStr after item.
+    '''
+    if formatStr[0] != '"':
+        raise FormatStrParseError('Missing expected quote character at: %s' %(formatStr,))
+
+    matchObj = itemPattern.match(formatStr)
+    if not matchObj:
+        raise FormatStrParseError("Can't find end of quoted key name (missing end-quote? Key is not [a-zA-Z0-9_][^\"]*? %s" %(formatStr,))
+
+    itemName = matchObj.groupdict()['key_name']
+
+    # Return itemName and remainder of key after matched portion
+    return (itemName, formatStr[matchObj.span()[1]:])
+
+class FormatStrParseError(Exception):
+    '''
+        FormatStrParseError - Raised if there is an error in parsing the format string.
+
+    '''
+    pass
+
+'''
+    ParseError - DEPRECATED - old name for FormatStrParseError
+'''
+ParseError = FormatStrParseError
+
+
+# These are characters with a defined operation
+OPER_CHARS = (',', '.', '[', ']', '/', '+')
+
+# These are whitespace characters. When encountered on their own
+#  (i.e. not part of parsing an operation) they are stripped.
+WHITESPACE_CHARS = (' ', ',', '\n', '\r', '\t')
+
+# Pattern used to strip all whitespace starting at current position to next non-whitespace
+WHITESPACE_CHAR_PATTERN = '^[%s]+' %(''.join(['\\' + whitespaceChar for whitespaceChar in WHITESPACE_CHARS]), )

@@ -12,7 +12,7 @@ import os
 import sys
 
 
-from json_to_csv import JsonToCsv, ParseError
+from json_to_csv import JsonToCsv, FormatStrParseError
 
 # NULL_VALUE - This is how we will represent when a value is unreachable, undefined, or actually has a value of (null) in the data.
 NULL_VALUE = "NULL"
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     # Try to parse format string
     try:
         parser = JsonToCsv(PARSE_STR, nullValue=NULL_VALUE, debug=IS_DEBUG)
-    except ParseError as pe:
+    except FormatStrParseError as pe:
         # Got a readable error, print it.
         sys.stderr.write('Error in format str: %s\n' %(str(pe),))
         sys.exit(1)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     #   First, show "convertToCsv" which goes straight to string (when asLines=False)
     try:
         csvDataStr = parser.convertToCsv(contents)
-    except ParseError as pe:
+    except FormatStrParseError as pe:
         sys.stderr.write('Error in parsing: %s\n' %(str(pe),))
         sys.exit(1)
 
