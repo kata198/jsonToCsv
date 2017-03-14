@@ -642,6 +642,13 @@ class JsonToCsv(object):
                 formatStr = WHITESPACE_CLEAR_RE.sub('', formatStr)
 
                 continue
+            elif formatStr[0] == '#':
+
+                # Clear the leading comment and all whitespace, newlines, and lines which only contain
+                #   comments from the cursor. (i.e. next character will be meaningful)
+                formatStr = COMMENT_CLEAR_RE.sub('', formatStr)
+
+                continue
             else:
                 raise FormatStrParseError('Unhandled character: %s at: %s\n' %(formatStr[0], formatStr ))
                 
@@ -804,5 +811,8 @@ WHITESPACE_CHARS = (' ', ',', '\n', '\r', '\t')
 # Pattern used to strip all whitespace starting at current position to next non-whitespace
 WHITESPACE_CLEAR_RE = re.compile('^[%s]+' %(''.join(['\\' + whitespaceChar for whitespaceChar in WHITESPACE_CHARS]), ))
 
+# Pattern to clear comments found in format str, and all whitespace and further lines
+#  with only comments or whitespace until we reach a non-commented character
+COMMENT_CLEAR_RE = re.compile('^([\r\n \t]*[#].*[\r\n \t]*)+')
 
 # vim: set ts=4 sw=4 st=4 expandtab :
