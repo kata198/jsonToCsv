@@ -1,3 +1,8 @@
+1.0.1 - Mar 14 2017
+- Cleanup some documentation
+- Mark as production-ready
+- Add missing files to MANIFEST.in
+
 1.0.0 - Mar 13 2017
 - Some various refactoring, reodering and labeling to better denote the public
 vs private methods
